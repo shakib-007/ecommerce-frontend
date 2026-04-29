@@ -1,4 +1,3 @@
-// src/lib/api/cart.ts
 import { ApiClient } from './client';
 import { Cart } from '@/types';
 import { API_ENDPOINTS } from './config';

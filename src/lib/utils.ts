@@ -1,4 +1,3 @@
-// src/lib/utils.ts
 
 export function formatPrice(amount: number): string {
   return `৳${amount.toLocaleString('en-BD', {

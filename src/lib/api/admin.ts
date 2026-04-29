@@ -1,4 +1,3 @@
-// src/lib/api/admin.ts
 import { ApiClient } from './client';
 import { API_ENDPOINTS } from './config';
 

@@ -1,4 +1,3 @@
-// src/lib/api/orders.ts
 import { ApiClient } from './client';
 import { Order, OrderDetail, Address, PaginatedResponse } from '@/types';
 import { API_ENDPOINTS } from './config';

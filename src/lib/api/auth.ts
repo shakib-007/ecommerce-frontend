@@ -1,4 +1,3 @@
-// src/lib/api/auth.ts
 import { ApiClient } from './client';
 import { API_ENDPOINTS } from './config';
 import { User, RegisterUserData, LoginData } from '@/types';
