@@ -21,14 +21,7 @@ const orderSlice = createSlice({
   name: 'order',
   initialState,
   reducers: {
-    setOrders: (
-      state,
-      action: PayloadAction<{
-        orders: Order[];
-        totalPages: number;
-        currentPage: number;
-      }>
-    ) => {
+    setOrders: (state, action: PayloadAction<{ orders: Order[]; totalPages: number; currentPage: number; }>) => {
       state.orders      = action.payload.orders;
       state.totalPages  = action.payload.totalPages;
       state.currentPage = action.payload.currentPage;

@@ -19,16 +19,12 @@ const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    setCredentials: (
-      state,
-      action: PayloadAction<{ user: User; token: string }>
-    ) => {
+    setCredentials: (state, action: PayloadAction<{ user: User; token: string }>) => {
       state.user            = action.payload.user;
       state.token           = action.payload.token;
       state.isAuthenticated = true;
       state.isLoading       = false;
 
-      // Persist token to localStorage
       localStorage.setItem('auth_token', action.payload.token);
       localStorage.setItem('auth_user', JSON.stringify(action.payload.user));
 
@@ -51,7 +47,6 @@ const authSlice = createSlice({
       state.user = action.payload;
     },
 
-    // Called on app startup to rehydrate from localStorage
     initializeAuth: (state) => {
       if (typeof window === 'undefined') {
         state.isLoading = false;

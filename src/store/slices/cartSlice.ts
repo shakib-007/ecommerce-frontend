@@ -2,8 +2,8 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Cart } from '@/types';
 
 interface CartState {
-  cart: Cart | null;
-  isOpen: boolean;   // controls cart drawer open/close
+  cart:      Cart | null;
+  isOpen:    boolean; // controls cart drawer open/close
   isLoading: boolean;
 }
 
