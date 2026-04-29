@@ -46,15 +46,9 @@ export default function LoginPage() {
       setServerError('');
 
       try {
-        const response = await authApi.login({
-          email:    values.email,
-          password: values.password,
-        });
+        const response = await authApi.login({ ...values });
 
-        dispatch(setCredentials({
-          token: response.token,
-          user:  response.user,
-        }));
+        dispatch(setCredentials({ token: response.token, user: response.user, }));
 
         if (response.user.role === 'admin') {
           router.push('/admin');

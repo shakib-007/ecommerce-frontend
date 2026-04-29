@@ -43,13 +43,9 @@ export default function RegisterPage() {
 
     validationSchema: Yup.object({
       name: Yup.string().min(2, 'Name must be at least 2 characters').max(100, 'Name is too long').required('Full name is required'),
-
       email: Yup.string().email('Enter a valid email address').required('Email is required'),
-
       phone: Yup.string().matches(/^(\+?880|0)?1[3-9]\d{8}$/, 'Enter a valid Bangladeshi phone number').optional(),
-
       password: Yup.string().min(8, 'Password must be at least 8 characters').matches(/[A-Z]/, 'Must contain at least one uppercase letter').matches(/[0-9]/, 'Must contain at least one number').required('Password is required'),
-
       password_confirmation: Yup.string().oneOf([Yup.ref('password')], 'Passwords do not match').required('Please confirm your password'),
     }),
 
@@ -60,18 +56,9 @@ export default function RegisterPage() {
       setServerError('');
 
       try {
-        const response = await authApi.register({
-          name:                  values.name,
-          email:                 values.email,
-          phone:                 values.phone || undefined,
-          password:              values.password,
-          password_confirmation: values.password_confirmation,
-        });
+        const response = await authApi.register({ ...values });
 
-        dispatch(setCredentials({
-          token: response.token,
-          user:  response.user,
-        }));
+        dispatch(setCredentials({ token: response.token, user: response.user, }));
 
         router.push('/');
 
