@@ -1,6 +1,8 @@
 
-export function formatPrice(amount: number): string {
-  return `৳${amount.toLocaleString('en-BD', {
+export function formatPrice(amount?: number | null): string {
+  const value = Number(amount ?? 0);
+
+  return `৳${value.toLocaleString('en-BD', {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   })}`;
