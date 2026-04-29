@@ -15,7 +15,7 @@ export default function AuthLayout({
       <div className="w-full max-w-md">
         {/* <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold text-black">
-            MyShop
+            fason
           </Link>
           <p className="text-sm text-gray-500 mt-1">
             Best deals every day
