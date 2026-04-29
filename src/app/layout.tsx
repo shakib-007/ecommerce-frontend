@@ -7,10 +7,10 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: {
-    default: 'MyShop — Best deals every day',
-    template: '%s | MyShop',
+    default: 'fason — Best deals every day',
+    template: '%s | fason',
   },
-  description: 'Shop the best products at MyShop.',
+  description: 'Shop the best products at fason.',
 };
 
 export default function RootLayout({
