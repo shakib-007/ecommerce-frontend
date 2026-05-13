@@ -30,6 +30,9 @@ export const adminApi = {
   getOrders: (params?: Record<string, any>) =>
     ApiClient.get<any>(API_ENDPOINTS.ADMIN_ORDERS, { params }),
 
+  getOrderById: (id: string) =>
+    ApiClient.get<any>(`/admin/orders/${id}`),  
+
   updateOrderStatus: (id: string, status: string) =>
     ApiClient.patch<any>(`${API_ENDPOINTS.ADMIN_ORDERS}/${id}/status`, { status }),
 
@@ -49,6 +52,16 @@ export const adminApi = {
 
   createCoupon: (data: Record<string, any>) =>
     ApiClient.post<any>(API_ENDPOINTS.ADMIN_COUPONS, data),
+
+  toggleCouponStatus: (id: string) =>
+    ApiClient.patch<{ message: string; is_active: boolean }>(
+      `/admin/coupons/${id}/toggle`
+    ),
+
+  deleteCoupon: (id: string) =>
+    ApiClient.delete<{ message: string }>(  
+      `/admin/coupons/${id}`
+    ),
 
   // Settings
   getSettings: () =>
