@@ -29,7 +29,6 @@ export default function LoginPage() {
   const {
     handleSubmit,
     getFieldProps,
-    setValues,
     setFieldError,
     touched,
     errors,

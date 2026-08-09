@@ -19,26 +19,13 @@ import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { ordersApi } from '@/lib/api/order';
 
-// ── Validation Schema ─────────────────────────────────────────────
-const CheckoutSchema = Yup.object({
-  address_id: Yup
-    .string()
-    .required('Please select a delivery address'),
+const initialValues = {
+  address_id: '',
+  payment_method: 'cod',
+  coupon_code: '',
+  notes: '',
+};
 
-  payment_method: Yup
-    .string()
-    .oneOf(['sslcommerz', 'cod'])
-    .required('Please select a payment method'),
-
-  coupon_code: Yup
-    .string()
-    .optional(),
-
-  notes: Yup
-    .string()
-    .max(500, 'Notes cannot exceed 500 characters')
-    .optional(),
-});
 
 export default function CheckoutPage() {
   const dispatch = useAppDispatch();
@@ -93,41 +80,29 @@ export default function CheckoutPage() {
     errors,
     isSubmitting,
   } = useFormik({
-    initialValues: {
-      address_id:     '',
-      payment_method: 'cod',
-      coupon_code:    '',
-      notes:          '',
-    },
+    initialValues,
 
-    validationSchema: CheckoutSchema,
+    validationSchema: Yup.object({
+      address_id: Yup.string().required('Please select a delivery address'),
+      payment_method: Yup.string().oneOf(['sslcommerz', 'cod']).required('Please select a payment method'),
+      coupon_code: Yup.string().optional(),
+      notes: Yup.string().max(500, 'Notes cannot exceed 500 characters').optional(),
+    }),
 
-    onSubmit: async (values) => {
+    onSubmit: async (values: any) => {
       setServerError('');
 
       try {
-        // 1. Place order
-        const orderRes = await ordersApi.place({
-          address_id:     values.address_id,
-          payment_method: values.payment_method as 'sslcommerz' | 'cod',
-          coupon_code:    values.coupon_code || undefined,
-          notes:          values.notes || undefined,
-        });
+        const orderRes = await ordersApi.place({ ...values });
 
         const order = orderRes.data;
 
-        // 2. Initiate payment
         const paymentRes = await ordersApi.initiatePayment(order.id);
 
-        // 3. Clear cart from Redux
         dispatch(clearCart());
-
-        // 4. Handle payment method
         if (values.payment_method === 'sslcommerz' && paymentRes.redirect_url) {
-          // Redirect to SSLCommerz payment page
           window.location.href = paymentRes.redirect_url;
         } else {
-          // COD — redirect to success page
           router.push(`/payment/success?order=${order.order_number}`);
         }
 
@@ -170,10 +145,8 @@ export default function CheckoutPage() {
       <form onSubmit={handleSubmit} noValidate>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-          {/* Left column — form */}
           <div className="lg:col-span-2 space-y-6">
 
-            {/* ── Section 1: Delivery address ──────────────────── */}
             <CheckoutSection
               icon={<MapPin size={18} />}
               title="Delivery Address"
@@ -229,10 +202,9 @@ export default function CheckoutPage() {
               )}
 
               {touched.address_id && errors.address_id && (
-                <p className="text-xs text-red-500 mb-3">{errors.address_id}</p>
+                <p className="text-xs text-red-500 mb-3">{errors.address_id as string}</p>
               )}
 
-              {/* Add new address toggle */}
               <button
                 type="button"
                 onClick={() => setShowNewAddress(!showNewAddress)}
@@ -389,7 +361,7 @@ export default function CheckoutPage() {
                 "
               />
               {touched.notes && errors.notes && (
-                <p className="text-xs text-red-500 mt-1">{errors.notes}</p>
+                <p className="text-xs text-red-500 mt-1">{errors.notes as string}</p>
               )}
             </CheckoutSection>
           </div>
