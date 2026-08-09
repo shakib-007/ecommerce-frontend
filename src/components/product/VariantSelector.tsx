@@ -201,10 +201,10 @@ export default function VariantSelector({ product }: Props) {
       {/* Qty selector + Add to cart */}
       <div className="flex items-center gap-3">
         {/* Qty */}
-        <div className="flex items-center border border-gray-300 rounded-xl overflow-hidden">
+        <div className="flex items-center border border-gray-300 text-black rounded-xl overflow-hidden">
           <button
             onClick={() => setQty(q => Math.max(1, q - 1))}
-            className="px-3 py-2.5 hover:bg-gray-50 transition-colors"
+            className="px-3 py-4 hover:bg-gray-50 transition-colors"
           >
             <Minus size={14} />
           </button>
@@ -217,7 +217,7 @@ export default function VariantSelector({ product }: Props) {
                 ? Math.min(selectedVariant.stock_qty, q + 1)
                 : q + 1
             )}
-            className="px-3 py-2.5 hover:bg-gray-50 transition-colors"
+            className="px-3 py-4 hover:bg-gray-50 transition-colors"
           >
             <Plus size={14} />
           </button>

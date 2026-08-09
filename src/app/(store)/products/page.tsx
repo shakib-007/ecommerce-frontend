@@ -1,4 +1,3 @@
-// src/app/(store)/products/page.tsx
 import { Suspense } from 'react';
 import { productsApi } from '@/lib/api/product';
 

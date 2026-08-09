@@ -84,18 +84,16 @@ export default function ProductCard({ product }: Props) {
 
             {/* Quick add button — appears on hover */}
             <motion.button
-              initial={{ opacity: 0 }}
-              whileHover={{ opacity: 1 }}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}  
               onClick={handleQuickAdd}
               disabled={!product.in_stock || adding}
               className="
                 absolute bottom-2 right-2
                 bg-black text-white
                 p-2 rounded-xl
-                opacity-0 group-hover:opacity-100
-                transition-opacity duration-200
                 disabled:opacity-50
-              "
+              " 
               aria-label="View product"
             >
               <ShoppingCart size={16} />
@@ -103,7 +101,7 @@ export default function ProductCard({ product }: Props) {
           </div>
 
           {/* Info */}
-          <div className="p-3">
+          <div className="p-3 text-center">
             {/* Brand */}
             {product.brand && (
               <p className="text-xs text-gray-400 mb-0.5">
@@ -140,11 +138,19 @@ export default function ProductCard({ product }: Props) {
             )}
 
             {/* Price */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-center">
               <p className="text-sm font-semibold text-gray-900">
                 {formatPrice(product.price_from)}
               </p>
             </div>
+            <button
+              onClick={handleQuickAdd}
+              disabled={!product.in_stock || adding}
+              className="bg-black text-white p-2 rounded-xl mt-2 w-full cursor-pointer"
+              aria-label="View product"
+            >
+              buy now
+            </button>
           </div>
         </div>
       </Link>

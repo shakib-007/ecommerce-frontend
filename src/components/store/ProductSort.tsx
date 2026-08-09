@@ -29,7 +29,7 @@ export default function ProductSort({
     <select
       value={currentSort ?? 'newest'}
       onChange={e => handleSort(e.target.value)}
-      className="text-sm border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-black bg-white"
+      className="text-sm border border-gray-300 rounded-xl px-3 py-2 outline-none focus:border-black bg-white text-gray-700"
     >
       {SORT_OPTIONS.map(opt => (
         <option key={opt.value} value={opt.value}>

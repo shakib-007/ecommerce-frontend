@@ -2,8 +2,8 @@
 'use client';
 
 interface InvalidProp {
-  errors:  Record<string, string>;
-  touched: Record<string, boolean>;
+  errors:  any;
+  touched: any;
 }
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {

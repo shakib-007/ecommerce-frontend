@@ -1,4 +1,3 @@
-// src/components/store/ProductFilters.tsx
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -212,14 +211,14 @@ export default function ProductFilters({
       <div>
         <button
           onClick={() => setShowPrice(!showPrice)}
-          className="flex items-center justify-between w-full mb-3"
+          className="flex items-center justify-between w-full mb-3 text-black"
         >
           <span className="text-sm font-semibold text-gray-900">Price range</span>
           {showPrice ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
 
         {showPrice && (
-          <div className="space-y-3">
+          <div className="space-y-3 text-black">
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -255,7 +254,7 @@ export default function ProductFilters({
       <div className="lg:hidden mb-4">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex items-center gap-2 text-sm font-medium border border-gray-300 px-4 py-2 rounded-xl"
+          className="flex items-center gap-2 text-sm text-black font-medium border border-gray-300 px-4 py-2 rounded-xl"
         >
           <SlidersHorizontal size={16} />
           {mobileOpen ? 'Hide filters' : 'Show filters'}
