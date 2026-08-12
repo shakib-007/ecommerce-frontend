@@ -22,7 +22,10 @@ export class ApiClient {
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          url.searchParams.append(key, String(value));
+          // Laravel boolean rules accept 1/0 more reliably than "true"/"false"
+          const serialized =
+            typeof value === 'boolean' ? (value ? '1' : '0') : String(value);
+          url.searchParams.append(key, serialized);
         }
       });
     }

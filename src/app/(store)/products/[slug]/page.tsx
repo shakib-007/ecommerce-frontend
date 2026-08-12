@@ -9,12 +9,14 @@ import ProductGallery from '@/components/product/ProductGallery';
 import VariantSelector from '@/components/product/VariantSelector';
 
 interface Props {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props) {
+  const { slug } = await params;
+
   try {
-    const res = await productsApi.getBySlug(params.slug);
+    const res = await productsApi.getBySlug(slug);
     return {
       title:       res.data.name,
       description: res.data.description?.slice(0, 160) ?? '',
@@ -25,11 +27,12 @@ export async function generateMetadata({ params }: Props) {
 }
 
 export default async function ProductDetailPage({ params }: Props) {
+  const { slug } = await params;
   let product, related;
 
   try {
     const res = await productsApi.getBySlug(
-      params.slug,
+      slug,
       { next: { revalidate: 30 } }
     );
     product = res.data;

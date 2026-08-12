@@ -1,28 +1,26 @@
-// src/components/store/ProductGrid.tsx
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { Package } from 'lucide-react';
 import { Product, PaginationMeta } from '@/types';
 import ProductCard from '@/components/product/ProductCard';
+import { useProductsNav } from './ProductsNavProvider';
 
 interface Props {
-  products:       Product[];
-  meta:           PaginationMeta;
-  currentFilters: any;
+  products: Product[];
+  meta: PaginationMeta;
+  currentFilters: Record<string, string | undefined>;
+  showFeaturedBadge?: boolean;
 }
 
-export default function ProductGrid({ products, meta, currentFilters }: Props) {
-  const router = useRouter();
-  const params = useSearchParams();
+export default function ProductGrid({
+  products,
+  meta,
+  showFeaturedBadge = true,
+}: Props) {
+  const { navigate, isPending } = useProductsNav();
 
   function goToPage(page: number) {
-    const current = new URLSearchParams(params.toString());
-    current.set('page', String(page));
-    router.push(`/products?${current.toString()}`);
-    // Scroll to top
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    navigate({ page: String(page) }, { scroll: true, keepPage: true });
   }
 
   if (products.length === 0) {
@@ -41,36 +39,26 @@ export default function ProductGrid({ products, meta, currentFilters }: Props) {
 
   return (
     <div>
-      {/* Grid */}
-      <motion.div
-        layout
-        className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4"
-      >
-        {products.map((product, index) => (
-          <motion.div
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+        {products.map(product => (
+          <ProductCard
             key={product.id}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.04 }}
-          >
-            <ProductCard product={product} />
-          </motion.div>
+            product={product}
+            showFeaturedBadge={showFeaturedBadge}
+          />
         ))}
-      </motion.div>
+      </div>
 
-      {/* Pagination */}
       {meta.last_page > 1 && (
         <div className="flex items-center justify-center gap-2 mt-10">
-          {/* Prev */}
           <button
             onClick={() => goToPage(meta.current_page - 1)}
-            disabled={meta.current_page === 1}
+            disabled={isPending || meta.current_page === 1}
             className="px-4 py-2 text-sm border border-gray-300 rounded-xl disabled:opacity-40 hover:bg-gray-50 transition-colors"
           >
             ← Prev
           </button>
 
-          {/* Page numbers */}
           {getPageNumbers(meta.current_page, meta.last_page).map((page, i) =>
             page === '...' ? (
               <span key={`ellipsis-${i}`} className="px-2 text-gray-400">
@@ -80,11 +68,13 @@ export default function ProductGrid({ products, meta, currentFilters }: Props) {
               <button
                 key={page}
                 onClick={() => goToPage(Number(page))}
+                disabled={isPending}
                 className={`
-                  w-9 h-9 text-sm rounded-xl transition-colors
-                  ${page === meta.current_page
-                    ? 'bg-black text-white'
-                    : 'border border-gray-300 hover:bg-gray-50'
+                  w-9 h-9 text-sm rounded-xl transition-colors disabled:opacity-60
+                  ${
+                    page === meta.current_page
+                      ? 'bg-black text-white'
+                      : 'border border-gray-300 hover:bg-gray-50'
                   }
                 `}
               >
@@ -93,10 +83,9 @@ export default function ProductGrid({ products, meta, currentFilters }: Props) {
             )
           )}
 
-          {/* Next */}
           <button
             onClick={() => goToPage(meta.current_page + 1)}
-            disabled={meta.current_page === meta.last_page}
+            disabled={isPending || meta.current_page === meta.last_page}
             className="px-4 py-2 text-sm border border-gray-300 rounded-xl disabled:opacity-40 hover:bg-gray-50 transition-colors"
           >
             Next →
@@ -104,7 +93,6 @@ export default function ProductGrid({ products, meta, currentFilters }: Props) {
         </div>
       )}
 
-      {/* Result count */}
       <p className="text-center text-xs text-gray-400 mt-4">
         Showing {meta.from}–{meta.to} of {meta.total} products
       </p>
@@ -112,7 +100,6 @@ export default function ProductGrid({ products, meta, currentFilters }: Props) {
   );
 }
 
-// Generate smart page number array like [1, 2, '...', 8, 9, 10]
 function getPageNumbers(
   current: number,
   total: number
@@ -125,7 +112,11 @@ function getPageNumbers(
 
   if (current > 3) pages.push('...');
 
-  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+  for (
+    let i = Math.max(2, current - 1);
+    i <= Math.min(total - 1, current + 1);
+    i++
+  ) {
     pages.push(i);
   }
 

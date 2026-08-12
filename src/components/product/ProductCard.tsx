@@ -13,9 +13,14 @@ import { useState } from 'react';
 
 interface Props {
   product: Product;
+  /** Hide badge inside sections that are already titled "Featured". */
+  showFeaturedBadge?: boolean;
 }
 
-export default function ProductCard({ product }: Props) {
+export default function ProductCard({
+  product,
+  showFeaturedBadge = true,
+}: Props) {
   const dispatch        = useAppDispatch();
   const isAuthenticated = useAppSelector(s => s.auth.isAuthenticated);
   const [adding,        setAdding] = useState(false);
@@ -66,8 +71,8 @@ export default function ProductCard({ product }: Props) {
               </div>
             )}
 
-            {/* Featured badge */}
-            {product.is_featured && (
+            {/* Featured badge — skip when the parent section is already "Featured" */}
+            {showFeaturedBadge && product.is_featured && (
               <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-0.5 rounded-full font-medium">
                 Featured
               </span>

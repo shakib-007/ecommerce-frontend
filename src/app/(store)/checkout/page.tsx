@@ -18,6 +18,7 @@ import { formatPrice, getImageUrl } from '@/lib/utils';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import { ordersApi } from '@/lib/api/order';
+import { CheckoutSkeleton } from '@/components/skeletons/StoreSkeletons';
 
 const initialValues = {
   address_id: '',
@@ -125,11 +126,7 @@ export default function CheckoutPage() {
   const total        = subtotal + shippingFee;
 
   if (cartLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-gray-200 border-t-black rounded-full animate-spin" />
-      </div>
-    );
+    return <CheckoutSkeleton />;
   }
 
   return (

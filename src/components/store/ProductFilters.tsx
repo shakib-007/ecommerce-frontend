@@ -1,14 +1,14 @@
 'use client';
 
-import { useRouter, useSearchParams } from 'next/navigation';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
 import { Category, Brand } from '@/types';
+import { useProductsNav } from './ProductsNavProvider';
 
 interface Props {
-  categories:     Category[];
-  brands:         Brand[];
-  currentFilters: any;
+  categories: Category[];
+  brands: Brand[];
+  currentFilters: Record<string, string | undefined>;
 }
 
 export default function ProductFilters({
@@ -16,44 +16,24 @@ export default function ProductFilters({
   brands,
   currentFilters,
 }: Props) {
-  const router     = useRouter();
-  const params     = useSearchParams();
+  const { navigate, clearAll, isPending } = useProductsNav();
 
-  const [priceMin,      setPriceMin]      = useState(currentFilters.min_price ?? '');
-  const [priceMax,      setPriceMax]      = useState(currentFilters.max_price ?? '');
-  const [showCats,      setShowCats]      = useState(true);
-  const [showBrands,    setShowBrands]    = useState(true);
-  const [showPrice,     setShowPrice]     = useState(true);
-  const [mobileOpen,    setMobileOpen]    = useState(false);
+  const [priceMin, setPriceMin] = useState(currentFilters.min_price ?? '');
+  const [priceMax, setPriceMax] = useState(currentFilters.max_price ?? '');
+  const [showCats, setShowCats] = useState(true);
+  const [showBrands, setShowBrands] = useState(true);
+  const [showPrice, setShowPrice] = useState(true);
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Build new URL with updated filter
   function updateFilter(key: string, value: string | undefined) {
-    const current = new URLSearchParams(params.toString());
-
-    if (value) {
-      current.set(key, value);
-    } else {
-      current.delete(key);
-    }
-
-    // Reset to page 1 when filter changes
-    current.set('page', '1');
-
-    router.push(`/products?${current.toString()}`);
+    navigate({ [key]: value });
   }
 
   function applyPriceFilter() {
-    const current = new URLSearchParams(params.toString());
-    if (priceMin) current.set('min_price', priceMin);
-    else current.delete('min_price');
-    if (priceMax) current.set('max_price', priceMax);
-    else current.delete('max_price');
-    current.set('page', '1');
-    router.push(`/products?${current.toString()}`);
-  }
-
-  function clearAllFilters() {
-    router.push('/products');
+    navigate({
+      min_price: priceMin || undefined,
+      max_price: priceMax || undefined,
+    });
   }
 
   const hasActiveFilters = !!(
@@ -64,10 +44,8 @@ export default function ProductFilters({
     currentFilters.in_stock
   );
 
-  const FilterContent = () => (
-    <div className="space-y-6">
-
-      {/* Active filters header */}
+  const content = (
+    <div className={`space-y-6 ${isPending ? 'opacity-70' : ''}`}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <SlidersHorizontal size={16} className="text-gray-500" />
@@ -75,7 +53,7 @@ export default function ProductFilters({
         </div>
         {hasActiveFilters && (
           <button
-            onClick={clearAllFilters}
+            onClick={clearAll}
             className="text-xs text-red-500 hover:text-red-700"
           >
             Clear all
@@ -83,28 +61,30 @@ export default function ProductFilters({
         )}
       </div>
 
-      {/* In stock toggle */}
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium text-gray-700">In stock only</span>
         <button
-          onClick={() => updateFilter(
-            'in_stock',
-            currentFilters.in_stock === 'true' ? undefined : 'true'
-          )}
+          onClick={() =>
+            updateFilter(
+              'in_stock',
+              currentFilters.in_stock === 'true' ? undefined : 'true'
+            )
+          }
           className={`
             relative w-10 h-5 rounded-full transition-colors duration-200
             ${currentFilters.in_stock === 'true' ? 'bg-black' : 'bg-gray-200'}
           `}
         >
-          <span className={`
+          <span
+            className={`
             absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full
             transition-transform duration-200
             ${currentFilters.in_stock === 'true' ? 'translate-x-5' : ''}
-          `} />
+          `}
+          />
         </button>
       </div>
 
-      {/* Categories */}
       <div>
         <button
           onClick={() => setShowCats(!showCats)}
@@ -120,9 +100,10 @@ export default function ProductFilters({
               onClick={() => updateFilter('category', undefined)}
               className={`
                 w-full text-left text-sm px-3 py-1.5 rounded-lg transition-colors
-                ${!currentFilters.category
-                  ? 'bg-black text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
+                ${
+                  !currentFilters.category
+                    ? 'bg-black text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }
               `}
             >
@@ -137,9 +118,10 @@ export default function ProductFilters({
                     onClick={() => updateFilter('category', cat.slug)}
                     className={`
                       w-full text-left text-sm px-3 py-1.5 rounded-lg transition-colors
-                      ${currentFilters.category === cat.slug
-                        ? 'bg-black text-white'
-                        : 'text-gray-600 hover:bg-gray-100'
+                      ${
+                        currentFilters.category === cat.slug
+                          ? 'bg-black text-white'
+                          : 'text-gray-600 hover:bg-gray-100'
                       }
                     `}
                   >
@@ -151,16 +133,16 @@ export default function ProductFilters({
                     )}
                   </button>
 
-                  {/* Subcategories */}
                   {cat.children?.map(sub => (
                     <button
                       key={sub.id}
                       onClick={() => updateFilter('category', sub.slug)}
                       className={`
                         w-full text-left text-sm pl-6 pr-3 py-1 rounded-lg transition-colors
-                        ${currentFilters.category === sub.slug
-                          ? 'bg-gray-100 text-black font-medium'
-                          : 'text-gray-500 hover:bg-gray-50'
+                        ${
+                          currentFilters.category === sub.slug
+                            ? 'bg-gray-100 text-black font-medium'
+                            : 'text-gray-500 hover:bg-gray-50'
                         }
                       `}
                     >
@@ -168,13 +150,11 @@ export default function ProductFilters({
                     </button>
                   ))}
                 </div>
-              ))
-            }
+              ))}
           </div>
         )}
       </div>
 
-      {/* Brands */}
       <div>
         <button
           onClick={() => setShowBrands(!showBrands)}
@@ -194,10 +174,14 @@ export default function ProductFilters({
                 <input
                   type="checkbox"
                   checked={currentFilters.brand === brand.slug}
-                  onChange={() => updateFilter(
-                    'brand',
-                    currentFilters.brand === brand.slug ? undefined : brand.slug
-                  )}
+                  onChange={() =>
+                    updateFilter(
+                      'brand',
+                      currentFilters.brand === brand.slug
+                        ? undefined
+                        : brand.slug
+                    )
+                  }
                   className="w-3.5 h-3.5 accent-black"
                 />
                 <span className="text-sm text-gray-700">{brand.name}</span>
@@ -207,7 +191,6 @@ export default function ProductFilters({
         )}
       </div>
 
-      {/* Price range */}
       <div>
         <button
           onClick={() => setShowPrice(!showPrice)}
@@ -250,7 +233,6 @@ export default function ProductFilters({
 
   return (
     <>
-      {/* Mobile filter toggle */}
       <div className="lg:hidden mb-4">
         <button
           onClick={() => setMobileOpen(!mobileOpen)}
@@ -267,14 +249,13 @@ export default function ProductFilters({
 
         {mobileOpen && (
           <div className="mt-4 p-4 bg-white rounded-2xl border border-gray-100">
-            <FilterContent />
+            {content}
           </div>
         )}
       </div>
 
-      {/* Desktop filters */}
       <div className="hidden lg:block bg-white rounded-2xl border border-gray-100 p-5">
-        <FilterContent />
+        {content}
       </div>
     </>
   );
