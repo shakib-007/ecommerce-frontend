@@ -1,10 +1,9 @@
-// src/components/product/VariantSelector.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Minus, Plus, Check } from 'lucide-react';
+import { ShoppingBag, Minus, Plus, Check, Heart } from 'lucide-react';
 import { ProductDetail, ProductVariant } from '@/types';
 import { formatPrice } from '@/lib/utils';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -17,34 +16,33 @@ interface Props {
 }
 
 export default function VariantSelector({ product }: Props) {
-  const dispatch        = useAppDispatch();
-  const router          = useRouter();
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const isAuthenticated = useAppSelector(s => s.auth.isAuthenticated);
 
-  // Track selected attribute values: { "Color": "valueId", "Storage": "valueId" }
-  const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>({});
-  const [qty,           setQty]           = useState(1);
-  const [isAdding,      setIsAdding]      = useState(false);
-  const [addedToCart,   setAddedToCart]   = useState(false);
+  const [selectedAttrs, setSelectedAttrs] = useState<Record<string, string>>(
+    {}
+  );
+  const [qty, setQty] = useState(1);
+  const [isAdding, setIsAdding] = useState(false);
+  const [addedToCart, setAddedToCart] = useState(false);
 
-  // Find the variant that matches ALL currently selected attributes
-  const selectedVariant: ProductVariant | undefined = product.variants.find(variant =>
-    product.attribute_groups.every(group => {
-      const selectedValueId = selectedAttrs[group.name];
-      if (!selectedValueId) return false;
-      return variant.attributes.some(a =>
-        a.group_name === group.name && a.value_id === selectedValueId
-      );
-    })
+  const selectedVariant: ProductVariant | undefined = product.variants.find(
+    variant =>
+      product.attribute_groups.every(group => {
+        const selectedValueId = selectedAttrs[group.name];
+        if (!selectedValueId) return false;
+        return variant.attributes.some(
+          a => a.group_name === group.name && a.value_id === selectedValueId
+        );
+      })
   );
 
-  // Check if all attribute groups have been selected
-  const allSelected = product.attribute_groups.length > 0
-    ? product.attribute_groups.every(g => selectedAttrs[g.name])
-    : true;
+  const allSelected =
+    product.attribute_groups.length > 0
+      ? product.attribute_groups.every(g => selectedAttrs[g.name])
+      : true;
 
-  // Check if a specific attribute value is available
-  // (has at least one in-stock variant with that value + current other selections)
   function isValueAvailable(groupName: string, valueId: string): boolean {
     return product.variants.some(variant => {
       const hasValue = variant.attributes.some(
@@ -52,7 +50,6 @@ export default function VariantSelector({ product }: Props) {
       );
       if (!hasValue) return false;
 
-      // Check other already-selected attributes still match
       return Object.entries(selectedAttrs).every(([gName, vId]) => {
         if (gName === groupName) return true;
         return variant.attributes.some(
@@ -81,54 +78,65 @@ export default function VariantSelector({ product }: Props) {
       dispatch(setCart(response.data));
       dispatch(openCart());
       setAddedToCart(true);
-
-      // Reset added state after 2 seconds
       setTimeout(() => setAddedToCart(false), 2000);
-    } catch (error: any) {
-      alert(error.message || 'Failed to add to cart');
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to add to cart';
+      alert(message);
     } finally {
       setIsAdding(false);
     }
   }
 
-  return (
-    <div className="space-y-5">
+  function handleWishlist() {
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    router.push('/dashboard/wishlist');
+  }
 
-      {/* Attribute groups */}
+  return (
+    <div className="space-y-6">
       {product.attribute_groups.map(group => (
         <div key={group.id}>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-sm font-medium text-gray-900">
-              {group.name}
-            </span>
+          <div className="mb-2.5 flex items-center gap-2">
+            <span className="text-sm font-semibold text-ink">{group.name}</span>
             {selectedAttrs[group.name] && (
-              <span className="text-sm text-gray-500">
-                — {group.values.find(v => v.id === selectedAttrs[group.name])?.value}
+              <span className="text-sm text-muted">
+                —{' '}
+                {
+                  group.values.find(v => v.id === selectedAttrs[group.name])
+                    ?.value
+                }
               </span>
             )}
           </div>
 
           <div className="flex flex-wrap gap-2">
             {group.values.map(val => {
-              const isSelected  = selectedAttrs[group.name] === val.id;
+              const isSelected = selectedAttrs[group.name] === val.id;
               const isAvailable = isValueAvailable(group.name, val.id);
 
-              // Color swatch type
               if (group.type === 'color' && val.meta) {
                 return (
                   <motion.button
                     key={val.id}
+                    type="button"
                     whileTap={{ scale: 0.9 }}
-                    onClick={() => isAvailable && selectAttribute(group.name, val.id)}
+                    onClick={() =>
+                      isAvailable && selectAttribute(group.name, val.id)
+                    }
                     disabled={!isAvailable}
                     title={val.value}
                     className={`
-                      w-8 h-8 rounded-full border-2 transition-all relative
-                      ${isSelected
-                        ? 'border-black scale-110'
-                        : 'border-transparent hover:border-gray-400'
+                      relative h-9 w-9 rounded-full border-2 transition-all
+                      ${
+                        isSelected
+                          ? 'border-accent scale-110'
+                          : 'border-transparent hover:border-border-strong'
                       }
-                      ${!isAvailable ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'}
+                      ${!isAvailable ? 'cursor-not-allowed opacity-30' : 'cursor-pointer'}
                     `}
                     style={{ backgroundColor: val.meta }}
                   >
@@ -142,21 +150,23 @@ export default function VariantSelector({ product }: Props) {
                 );
               }
 
-              // Button type (size, storage, etc.)
               return (
                 <motion.button
                   key={val.id}
+                  type="button"
                   whileTap={{ scale: 0.95 }}
-                  onClick={() => isAvailable && selectAttribute(group.name, val.id)}
+                  onClick={() =>
+                    isAvailable && selectAttribute(group.name, val.id)
+                  }
                   disabled={!isAvailable}
                   className={`
-                    px-3 py-1.5 rounded-xl border text-sm
-                    transition-all duration-150
-                    ${isSelected
-                      ? 'border-black bg-black text-white'
-                      : isAvailable
-                        ? 'border-gray-300 text-gray-700 hover:border-gray-500'
-                        : 'border-gray-200 text-gray-300 cursor-not-allowed line-through'
+                    rounded-lg border px-3.5 py-2 text-sm transition-all duration-150
+                    ${
+                      isSelected
+                        ? 'border-ink bg-ink text-white'
+                        : isAvailable
+                          ? 'border-border-strong text-ink hover:border-ink'
+                          : 'cursor-not-allowed border-border text-muted-light line-through'
                     }
                   `}
                 >
@@ -168,62 +178,63 @@ export default function VariantSelector({ product }: Props) {
         </div>
       ))}
 
-      {/* Selected variant price + stock */}
       {selectedVariant && (
         <motion.div
           initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between py-3 border-t border-gray-100"
+          className="flex items-center justify-between border-t border-border py-4"
         >
           <div>
-            <span className="text-2xl font-bold text-gray-900">
+            <span className="text-2xl font-bold text-ink">
               {formatPrice(selectedVariant.price)}
             </span>
             {selectedVariant.compare_price &&
               selectedVariant.compare_price > selectedVariant.price && (
-              <span className="ml-2 text-sm text-gray-400 line-through">
-                {formatPrice(selectedVariant.compare_price)}
-              </span>
-            )}
+                <span className="ml-2 text-sm text-muted line-through">
+                  {formatPrice(selectedVariant.compare_price)}
+                </span>
+              )}
           </div>
 
-          <span className={`text-sm font-medium ${
-            selectedVariant.in_stock ? 'text-green-600' : 'text-red-500'
-          }`}>
+          <span
+            className={`text-sm font-medium ${
+              selectedVariant.in_stock ? 'text-emerald-700' : 'text-red-600'
+            }`}
+          >
             {selectedVariant.in_stock
               ? `${selectedVariant.stock_qty} in stock`
-              : 'Out of stock'
-            }
+              : 'Out of stock'}
           </span>
         </motion.div>
       )}
 
-      {/* Qty selector + Add to cart */}
       <div className="flex items-center gap-3">
-        {/* Qty */}
-        <div className="flex items-center border border-gray-300 text-black rounded-xl overflow-hidden">
+        <div className="flex items-center overflow-hidden rounded-lg border border-border-strong text-ink">
           <button
+            type="button"
             onClick={() => setQty(q => Math.max(1, q - 1))}
-            className="px-3 py-4 hover:bg-gray-50 transition-colors"
+            className="px-3 py-3.5 transition-colors hover:bg-surface-muted"
+            aria-label="Decrease quantity"
           >
             <Minus size={14} />
           </button>
-          <span className="w-10 text-center text-sm font-medium">
-            {qty}
-          </span>
+          <span className="w-10 text-center text-sm font-semibold">{qty}</span>
           <button
-            onClick={() => setQty(q =>
-              selectedVariant
-                ? Math.min(selectedVariant.stock_qty, q + 1)
-                : q + 1
-            )}
-            className="px-3 py-4 hover:bg-gray-50 transition-colors"
+            type="button"
+            onClick={() =>
+              setQty(q =>
+                selectedVariant
+                  ? Math.min(selectedVariant.stock_qty, q + 1)
+                  : q + 1
+              )
+            }
+            className="px-3 py-3.5 transition-colors hover:bg-surface-muted"
+            aria-label="Increase quantity"
           >
             <Plus size={14} />
           </button>
         </div>
 
-        {/* Add to cart button */}
         <Button
           fullWidth
           size="lg"
@@ -235,7 +246,9 @@ export default function VariantSelector({ product }: Props) {
             !selectedVariant.in_stock ||
             isAdding
           }
-          className={addedToCart ? 'bg-green-600 hover:bg-green-700' : ''}
+          className={
+            addedToCart ? '!bg-emerald-600 hover:!bg-emerald-700' : ''
+          }
         >
           {addedToCart ? (
             <>
@@ -244,16 +257,24 @@ export default function VariantSelector({ product }: Props) {
             </>
           ) : (
             <>
-              <ShoppingCart size={16} />
+              <ShoppingBag size={16} />
               {!allSelected
                 ? 'Select options'
                 : !selectedVariant?.in_stock
                   ? 'Out of stock'
-                  : 'Add to cart'
-              }
+                  : 'Add to cart'}
             </>
           )}
         </Button>
+
+        <button
+          type="button"
+          onClick={handleWishlist}
+          className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-lg border border-border-strong text-muted transition-colors hover:border-accent hover:text-accent"
+          aria-label="Wishlist"
+        >
+          <Heart size={18} strokeWidth={1.75} />
+        </button>
       </div>
     </div>
   );

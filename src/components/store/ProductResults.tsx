@@ -3,12 +3,18 @@ import type { ProductFilters } from '@/lib/api/product';
 import ProductSort from '@/components/store/ProductSort';
 import ProductGrid from '@/components/store/ProductGrid';
 import ProductsPending from '@/components/store/ProductsPending';
+import ActiveFilterTags from '@/components/store/ActiveFilterTags';
+import type { Brand, Category } from '@/types';
 
 interface Props {
   filters: ProductFilters;
   showFeaturedBadge: boolean;
   currentSort?: string;
   currentFilters: Record<string, string | undefined>;
+  categories: Category[];
+  brands: Brand[];
+  /** When false, omit the meta/sort row (parent already renders it). */
+  showToolbar?: boolean;
 }
 
 export default async function ProductResults({
@@ -16,6 +22,9 @@ export default async function ProductResults({
   showFeaturedBadge,
   currentSort,
   currentFilters,
+  categories,
+  brands,
+  showToolbar = true,
 }: Props) {
   let productsRes;
 
@@ -25,7 +34,7 @@ export default async function ProductResults({
     });
   } catch {
     return (
-      <p className="text-sm text-red-600 py-10 text-center">
+      <p className="py-10 text-center text-sm text-red-600">
         Could not load products from the API. Please try again later.
       </p>
     );
@@ -33,14 +42,22 @@ export default async function ProductResults({
 
   return (
     <ProductsPending>
-      <div className="flex items-center justify-between mb-4">
-        <p className="text-sm text-gray-500">
-          Page {productsRes.meta.current_page} of {productsRes.meta.last_page}
-          <span className="mx-2 text-gray-300">·</span>
-          {productsRes.meta.total} products
-        </p>
-        <ProductSort currentSort={currentSort} />
-      </div>
+      {showToolbar && (
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <p className="text-sm text-muted">
+            {productsRes.meta.total.toLocaleString('en-BD')} items
+            <span className="mx-1.5 text-muted-light">·</span>
+            updated hourly
+          </p>
+          <ProductSort currentSort={currentSort} />
+        </div>
+      )}
+
+      <ActiveFilterTags
+        currentFilters={currentFilters}
+        categories={categories}
+        brands={brands}
+      />
 
       <ProductGrid
         products={productsRes.data}

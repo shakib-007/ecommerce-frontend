@@ -3,11 +3,16 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ShoppingCart, User, LogOut,
-  Menu, X, LayoutDashboard, Shield,
+  ShoppingBag,
+  User,
+  LogOut,
+  Menu,
+  X,
+  LayoutDashboard,
+  Shield,
+  Heart,
 } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { logout } from '@/store/slices/authSlice';
@@ -15,13 +20,13 @@ import { toggleCart } from '@/store/slices/cartSlice';
 import { authApi } from '@/lib/api/auth';
 
 export default function Navbar() {
-  const dispatch        = useAppDispatch();
-  const router          = useRouter();
+  const dispatch = useAppDispatch();
+  const router = useRouter();
   const { user, isAuthenticated } = useAppSelector(s => s.auth);
-  const cartItemCount   = useAppSelector(s => s.cart.cart?.total_items ?? 0);
+  const cartItemCount = useAppSelector(s => s.cart.cart?.total_items ?? 0);
 
-  const [mobileOpen,   setMobileOpen]   = useState(false);
-  const [profileOpen,  setProfileOpen]  = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   async function handleLogout() {
     try {
@@ -35,148 +40,139 @@ export default function Navbar() {
   }
 
   return (
-    <nav className="bg-white border-b border-gray-100">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-
-          {/* Logo */}
+    <nav className="sticky top-0 z-40 border-b border-white/10 bg-black">
+      <div className="container-store">
+        <div className="flex h-16 items-center justify-between gap-4 lg:h-[4.25rem]">
           <Link
             href="/"
-            className="flex items-center gap-2 text-xl font-bold text-black hover:text-gray-700 transition-colors"
+            className="font-display text-2xl font-semibold tracking-tight text-white transition-colors hover:text-white/80"
           >
-            <Image 
-              src="/shoplogo.png" 
-              alt="Shop Logo" 
-              width={150} 
-              height={50} 
-              className="object-contain"
-            />
+            shopora
           </Link>
 
-          {/* Desktop nav links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden items-center gap-8 md:flex">
             <Link
               href="/products"
-              className="text-sm text-gray-600 hover:text-black transition-colors"
+              className="text-sm text-white/70 transition-colors hover:text-white"
             >
-              Products
+              All products
             </Link>
             <Link
               href="/products?featured=true"
-              className="text-sm text-gray-600 hover:text-black transition-colors"
+              className="text-sm text-white/70 transition-colors hover:text-white"
             >
               Featured
             </Link>
+            <Link
+              href="/products?sort=newest"
+              className="text-sm text-white/70 transition-colors hover:text-white"
+            >
+              New arrivals
+            </Link>
           </div>
 
-          {/* Right side actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1 sm:gap-2">
+            {isAuthenticated && (
+              <Link
+                href="/dashboard/wishlist"
+                className="hidden rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white sm:inline-flex"
+                aria-label="Wishlist"
+              >
+                <Heart size={20} strokeWidth={1.75} />
+              </Link>
+            )}
 
-            {/* Cart button */}
             <button
               onClick={() => dispatch(toggleCart())}
-              className="relative p-2 text-gray-600 hover:text-black transition-colors"
+              className="relative rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
               aria-label="Open cart"
             >
-              <ShoppingCart size={22} />
+              <ShoppingBag size={20} strokeWidth={1.75} />
               {cartItemCount > 0 && (
                 <motion.span
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
-                  className="
-                    absolute -top-0.5 -right-0.5
-                    bg-black text-white text-xs
-                    rounded-full w-5 h-5
-                    flex items-center justify-center
-                    font-medium
-                  "
+                  className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1 text-[10px] font-semibold text-white"
                 >
                   {cartItemCount > 99 ? '99+' : cartItemCount}
                 </motion.span>
               )}
             </button>
 
-            {/* Auth section */}
             {isAuthenticated && user ? (
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                  className="flex items-center gap-2 rounded-full p-1.5 transition-colors hover:bg-white/10"
+                  aria-label="Account menu"
                 >
-                  <div className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center text-sm font-medium">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-sm font-medium text-black">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                 </button>
 
-                {/* Profile dropdown */}
                 <AnimatePresence>
                   {profileOpen && (
                     <>
-                      {/* Backdrop */}
                       <div
                         className="fixed inset-0 z-10"
                         onClick={() => setProfileOpen(false)}
                       />
-
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95, y: -8 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -8 }}
                         transition={{ duration: 0.15 }}
-                        className="
-                          absolute right-0 top-12 z-20
-                          bg-white border border-gray-100
-                          rounded-2xl shadow-lg
-                          w-52 py-2 overflow-hidden
-                        "
+                        className="absolute right-0 top-12 z-20 w-56 overflow-hidden rounded-xl border border-border bg-surface py-2 shadow-lg shadow-ink/5"
                       >
-                        {/* User info */}
-                        <div className="px-4 py-3 border-b border-gray-100">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                        <div className="border-b border-border px-4 py-3">
+                          <p className="truncate text-sm font-medium text-ink">
                             {user.name}
                           </p>
-                          <p className="text-xs text-gray-500 truncate">
-                            {user.email}
-                          </p>
+                          <p className="truncate text-xs text-muted">{user.email}</p>
                         </div>
 
-                        {/* Menu items */}
                         <div className="py-1">
                           {user.role === 'admin' && (
                             <Link
                               href="/admin"
                               onClick={() => setProfileOpen(false)}
-                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                              className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink/80 hover:bg-surface-muted"
                             >
                               <Shield size={16} />
                               Admin Panel
                             </Link>
                           )}
-
                           <Link
                             href="/dashboard"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink/80 hover:bg-surface-muted"
                           >
                             <LayoutDashboard size={16} />
                             Dashboard
                           </Link>
-
                           <Link
                             href="/dashboard/orders"
                             onClick={() => setProfileOpen(false)}
-                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50"
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink/80 hover:bg-surface-muted"
                           >
                             <User size={16} />
                             My Orders
                           </Link>
+                          <Link
+                            href="/dashboard/wishlist"
+                            onClick={() => setProfileOpen(false)}
+                            className="flex items-center gap-3 px-4 py-2.5 text-sm text-ink/80 hover:bg-surface-muted"
+                          >
+                            <Heart size={16} />
+                            Wishlist
+                          </Link>
                         </div>
 
-                        {/* Logout */}
-                        <div className="border-t border-gray-100 py-1">
+                        <div className="border-t border-border py-1">
                           <button
                             onClick={handleLogout}
-                            className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
+                            className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50"
                           >
                             <LogOut size={16} />
                             Sign out
@@ -188,26 +184,26 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
             ) : (
-              <div className="hidden md:flex items-center gap-2">
+              <div className="hidden items-center gap-2 md:flex">
                 <Link
                   href="/login"
-                  className="text-sm text-gray-600 hover:text-black px-3 py-2 transition-colors"
+                  className="px-3 py-2 text-sm text-white/70 transition-colors hover:text-white"
                 >
                   Sign in
                 </Link>
                 <Link
                   href="/register"
-                  className="text-sm bg-black text-white px-4 py-2 rounded-xl hover:bg-gray-800 transition-colors"
+                  className="rounded-lg bg-white px-4 py-2 text-sm font-medium text-black transition-colors hover:bg-white/90"
                 >
                   Sign up
                 </Link>
               </div>
             )}
 
-            {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="md:hidden p-2 text-gray-600 hover:text-black"
+              className="rounded-full p-2 text-white/70 transition-colors hover:bg-white/10 hover:text-white md:hidden"
+              aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
             >
               {mobileOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
@@ -215,36 +211,49 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-gray-100 bg-white overflow-hidden"
+            className="overflow-hidden border-t border-white/10 bg-black md:hidden"
           >
-            <div className="px-4 py-4 space-y-3">
-              <Link
-                href="/products"
-                onClick={() => setMobileOpen(false)}
-                className="block text-sm text-gray-700 py-2"
-              >
-                Products
-              </Link>
+            <div className="container-store space-y-1 py-4">
+              {[
+                { href: '/products', label: 'All products' },
+                { href: '/products?featured=true', label: 'Featured' },
+                { href: '/products?sort=newest', label: 'New arrivals' },
+              ].map(link => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="block py-2.5 text-sm text-white"
+                >
+                  {link.label}
+                </Link>
+              ))}
 
               {isAuthenticated ? (
                 <>
                   <Link
                     href="/dashboard"
                     onClick={() => setMobileOpen(false)}
-                    className="block text-sm text-gray-700 py-2"
+                    className="block py-2.5 text-sm text-white"
                   >
                     Dashboard
                   </Link>
+                  <Link
+                    href="/dashboard/wishlist"
+                    onClick={() => setMobileOpen(false)}
+                    className="block py-2.5 text-sm text-white"
+                  >
+                    Wishlist
+                  </Link>
                   <button
                     onClick={handleLogout}
-                    className="block text-sm text-red-600 py-2 w-full text-left"
+                    className="block w-full py-2.5 text-left text-sm text-red-400"
                   >
                     Sign out
                   </button>
@@ -254,14 +263,14 @@ export default function Navbar() {
                   <Link
                     href="/login"
                     onClick={() => setMobileOpen(false)}
-                    className="block text-sm text-gray-700 py-2"
+                    className="block py-2.5 text-sm text-white"
                   >
                     Sign in
                   </Link>
                   <Link
                     href="/register"
                     onClick={() => setMobileOpen(false)}
-                    className="block text-sm text-gray-700 py-2"
+                    className="inline-flex rounded-lg bg-white px-4 py-2.5 text-sm font-medium text-black"
                   >
                     Sign up
                   </Link>

@@ -1,14 +1,16 @@
-// src/components/product/ProductCard.tsx
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { ShoppingCart, Heart } from 'lucide-react';
+import { ShoppingBag, Heart, Star } from 'lucide-react';
 import { Product } from '@/types';
-import { formatPrice, getImageUrl } from '@/lib/utils';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { openCart, setCart } from '@/store/slices/cartSlice';
-import { cartApi } from '@/lib/api/cart';
+import {
+  formatPrice,
+  getDiscountPercent,
+  getImageUrl,
+} from '@/lib/utils';
+import { useAppSelector } from '@/store/hooks';
 import { useState } from 'react';
 
 interface Props {
@@ -21,16 +23,20 @@ export default function ProductCard({
   product,
   showFeaturedBadge = true,
 }: Props) {
-  const dispatch        = useAppDispatch();
+  const router = useRouter();
   const isAuthenticated = useAppSelector(s => s.auth.isAuthenticated);
-  const [adding,        setAdding] = useState(false);
+  const [adding, setAdding] = useState(false);
 
-  // Get first available variant id for quick add
+  const compareAt =
+    product.base_price > product.price_from ? product.base_price : null;
+  const discount = getDiscountPercent(product.price_from, compareAt);
+
   async function handleQuickAdd(e: React.MouseEvent) {
-    e.preventDefault(); // prevent Link navigation
+    e.preventDefault();
+    e.stopPropagation();
 
     if (!isAuthenticated) {
-      window.location.href = '/login';
+      router.push('/login');
       return;
     }
 
@@ -38,123 +44,129 @@ export default function ProductCard({
 
     setAdding(true);
     try {
-      // Quick add — we need to go to product page to select variant
-      // So just navigate to product detail
-      window.location.href = `/products/${product.slug}`;
+      router.push(`/products/${product.slug}`);
     } finally {
       setAdding(false);
     }
   }
 
-  const hasDiscount = false; // will be true when compare_price > price
+  function handleWishlist(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isAuthenticated) {
+      router.push('/login');
+      return;
+    }
+    router.push(`/products/${product.slug}`);
+  }
 
   return (
     <motion.div
-      whileHover={{ y: -2 }}
-      transition={{ duration: 0.2 }}
-      className="group"
+      whileHover={{ y: -3 }}
+      transition={{ duration: 0.22 }}
+      className="group h-full"
     >
-      <Link href={`/products/${product.slug}`} className="block">
-        <div className="bg-white rounded-2xl overflow-hidden border border-gray-100 hover:border-gray-200 hover:shadow-md transition-all duration-200">
+      <Link
+        href={`/products/${product.slug}`}
+        className="flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface shadow-[0_1px_2px_rgba(28,25,23,0.04)] transition-shadow duration-200 hover:shadow-[0_8px_24px_rgba(28,25,23,0.06)]"
+      >
+        {/* Image */}
+        <div className="relative aspect-square overflow-hidden bg-surface-warm">
+          {product.image ? (
+            <img
+              src={getImageUrl(product.image)}
+              alt={product.name}
+              className="h-full w-full object-contain p-4 transition-transform duration-500 group-hover:scale-[1.04] sm:p-6"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center text-muted-light">
+              <ShoppingBag size={36} strokeWidth={1.25} />
+            </div>
+          )}
 
-          {/* Image */}
-          <div className="relative aspect-square bg-gray-50 overflow-hidden">
-            {product.image ? (
-              <img
-                src={getImageUrl(product.image)}
-                alt={product.name}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-gray-300">
-                <ShoppingCart size={32} />
-              </div>
-            )}
-
-            {/* Featured badge — skip when the parent section is already "Featured" */}
-            {showFeaturedBadge && product.is_featured && (
-              <span className="absolute top-2 left-2 bg-black text-white text-xs px-2 py-0.5 rounded-full font-medium">
+          {/* Badges */}
+          <div className="absolute left-3 top-3 flex flex-col gap-1.5">
+            {!product.in_stock ? (
+              <span className="rounded-md bg-ink px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
+                Out of stock
+              </span>
+            ) : discount !== null ? (
+              <span className="rounded-md bg-accent px-2 py-1 text-[10px] font-semibold text-white">
+                −{discount}%
+              </span>
+            ) : showFeaturedBadge && product.is_featured ? (
+              <span className="rounded-md bg-ink px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-white">
                 Featured
               </span>
-            )}
-
-            {/* Out of stock overlay */}
-            {!product.in_stock && (
-              <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-500">
-                  Out of stock
-                </span>
-              </div>
-            )}
-
-            {/* Quick add button — appears on hover */}
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.95 }}  
-              onClick={handleQuickAdd}
-              disabled={!product.in_stock || adding}
-              className="
-                absolute bottom-2 right-2
-                bg-black text-white
-                p-2 rounded-xl
-                disabled:opacity-50
-              " 
-              aria-label="View product"
-            >
-              <ShoppingCart size={16} />
-            </motion.button>
+            ) : null}
           </div>
 
-          {/* Info */}
-          <div className="p-3 text-center">
-            {/* Brand */}
-            {product.brand && (
-              <p className="text-xs text-gray-400 mb-0.5">
-                {product.brand.name}
-              </p>
-            )}
+          <button
+            type="button"
+            onClick={handleWishlist}
+            className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-muted shadow-sm transition-colors hover:border-accent hover:text-accent"
+            aria-label="Add to wishlist"
+          >
+            <Heart size={16} strokeWidth={1.75} />
+          </button>
+        </div>
 
-            {/* Name */}
-            <p className="text-sm font-medium text-gray-900 line-clamp-2 leading-snug mb-2">
-              {product.name}
+        {/* Info */}
+        <div className="flex flex-1 flex-col p-4">
+          {product.brand && (
+            <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted">
+              {product.brand.name}
             </p>
+          )}
 
-            {/* Rating */}
-            {product.rating_count > 0 && (
-              <div className="flex items-center gap-1 mb-2">
-                <div className="flex">
-                  {[1, 2, 3, 4, 5].map(star => (
-                    <span
-                      key={star}
-                      className={`text-xs ${
-                        star <= Math.round(product.rating_avg)
-                          ? 'text-yellow-400'
-                          : 'text-gray-200'
-                      }`}
-                    >
-                      ★
-                    </span>
-                  ))}
-                </div>
-                <span className="text-xs text-gray-400">
-                  ({product.rating_count})
-                </span>
+          <p className="line-clamp-2 text-sm font-semibold leading-snug text-ink">
+            {product.name}
+          </p>
+
+          {product.rating_count > 0 && (
+            <div className="mt-2 flex items-center gap-1.5">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Star
+                    key={star}
+                    size={12}
+                    className={
+                      star <= Math.round(product.rating_avg)
+                        ? 'fill-accent text-accent'
+                        : 'fill-transparent text-border-strong'
+                    }
+                  />
+                ))}
               </div>
-            )}
+              <span className="text-xs font-medium text-ink">
+                {product.rating_avg.toFixed(1)}
+              </span>
+              <span className="text-xs text-muted">
+                ({product.rating_count})
+              </span>
+            </div>
+          )}
 
-            {/* Price */}
-            <div className="flex items-center justify-center">
-              <p className="text-sm font-semibold text-gray-900">
+          <div className="mt-auto flex items-end justify-between gap-3 pt-3">
+            <div className="min-w-0">
+              <p className="text-base font-bold text-ink">
                 {formatPrice(product.price_from)}
               </p>
+              {compareAt !== null && (
+                <p className="text-xs text-muted line-through">
+                  {formatPrice(compareAt)}
+                </p>
+              )}
             </div>
+
             <button
+              type="button"
               onClick={handleQuickAdd}
               disabled={!product.in_stock || adding}
-              className="bg-black text-white p-2 rounded-xl mt-2 w-full cursor-pointer"
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-accent text-white transition-colors hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
               aria-label="View product"
             >
-              buy now
+              <ShoppingBag size={16} strokeWidth={2} />
             </button>
           </div>
         </div>

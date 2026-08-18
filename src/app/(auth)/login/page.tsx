@@ -75,19 +75,19 @@ export default function LoginPage() {
       transition={{ duration: 0.3 }}
     >
       <div className="mb-6 text-center">
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="font-display text-2xl font-semibold text-ink">
           Welcome back
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="mt-1 text-sm text-muted">
           Don&apos;t have an account?{' '}
-          <Link href="/register" className="text-black font-medium hover:underline">
+          <Link href="/register" className="font-medium text-accent hover:text-accent-hover">
             Sign up
           </Link>
         </p>
       </div>
 
       {serverError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3">
           <p className="text-sm text-red-600">{serverError}</p>
         </div>
       )}
@@ -116,7 +116,7 @@ export default function LoginPage() {
           <button
             type="button"
             onClick={() => setShowPass(!showPass)}
-            className="absolute right-3 top-9.5 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-9 text-muted hover:text-ink"
           >
             {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
@@ -135,9 +135,9 @@ export default function LoginPage() {
 
       <div className="relative my-6">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-gray-200" />
+          <div className="w-full border-t border-border" />
         </div>
-        <div className="relative flex justify-center text-xs text-gray-400 bg-white px-3">
+        <div className="relative flex justify-center bg-surface px-3 text-xs text-muted-light">
           or continue with
         </div>
       </div>
@@ -145,10 +145,10 @@ export default function LoginPage() {
       <Link
         href={`${process.env.NEXT_PUBLIC_API_URL}/auth/google`}
         className="
-          w-full flex items-center justify-center gap-3
-          px-4 py-2.5 rounded-xl border border-gray-300
-          text-sm font-medium text-gray-700
-          hover:bg-gray-50 transition-colors duration-200
+          flex w-full items-center justify-center gap-3
+          rounded-lg border border-border-strong px-4 py-2.5
+          text-sm font-medium text-ink
+          transition-colors duration-200 hover:bg-surface-muted
         "
       >
         <svg width="18" height="18" viewBox="0 0 18 18">

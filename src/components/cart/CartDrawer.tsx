@@ -9,37 +9,36 @@ import { closeCart, setCart, setCartLoading } from '@/store/slices/cartSlice';
 import { cartApi } from '@/lib/api/cart';
 import { formatPrice } from '@/lib/utils';
 import Spinner from '@/components/ui/Spinner';
-import Button from '@/components/ui/Button';
 import CartItem from './CartItem';
 
 export default function CartDrawer() {
-  const dispatch        = useAppDispatch();
+  const dispatch = useAppDispatch();
   const { cart, isOpen, isLoading } = useAppSelector(s => s.cart);
   const isAuthenticated = useAppSelector(s => s.auth.isAuthenticated);
 
-  // Fetch cart when drawer opens
   useEffect(() => {
     if (!isOpen || !isAuthenticated) return;
 
     dispatch(setCartLoading(true));
-    cartApi.get()
+    cartApi
+      .get()
       .then(res => dispatch(setCart(res.data)))
       .catch(() => dispatch(setCartLoading(false)));
-  }, [isOpen, isAuthenticated]);
+  }, [isOpen, isAuthenticated, dispatch]);
 
-  // Close on Escape key
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') dispatch(closeCart());
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, []);
+  }, [dispatch]);
 
-  // Prevent body scroll when open
   useEffect(() => {
     document.body.style.overflow = isOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   const isEmpty = !cart || cart.items.length === 0;
@@ -48,95 +47,66 @@ export default function CartDrawer() {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => dispatch(closeCart())}
-            className="fixed inset-0 z-40 bg-black/30 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-ink/35 backdrop-blur-[2px]"
           />
 
-          {/* Drawer */}
           <motion.div
             initial={{ x: '100%' }}
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="
-              fixed right-0 top-0 bottom-0 z-50
-              w-full max-w-md
-              bg-white shadow-2xl
-              flex flex-col
-            "
+            className="fixed bottom-0 right-0 top-0 z-50 flex w-full max-w-md flex-col bg-background shadow-2xl shadow-ink/20"
           >
-            {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-              <div className="flex items-center gap-2">
-                <ShoppingBag size={20} />
-                <h2 className="text-base font-semibold text-gray-900">
-                  Your Cart
+            <div className="flex items-center justify-between border-b border-border px-5 py-4">
+              <div className="flex items-center gap-2.5">
+                <ShoppingBag size={20} strokeWidth={1.75} className="text-ink" />
+                <h2 className="font-display text-lg font-semibold text-ink">
+                  Your cart
                 </h2>
                 {cart && cart.total_items > 0 && (
-                  <span className="bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-medium">
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-semibold text-white">
                     {cart.total_items}
                   </span>
                 )}
               </div>
               <button
+                type="button"
                 onClick={() => dispatch(closeCart())}
-                className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+                className="rounded-full p-2 text-muted transition-colors hover:bg-surface-muted hover:text-ink"
+                aria-label="Close cart"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Body */}
             <div className="flex-1 overflow-y-auto">
               {isLoading ? (
-                <div className="flex items-center justify-center h-full">
+                <div className="flex h-full items-center justify-center">
                   <Spinner />
                 </div>
               ) : !isAuthenticated ? (
-                <div className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center">
-                  <ShoppingBag size={40} className="text-gray-300" />
-                  <div>
-                    <p className="font-medium text-gray-900 mb-1">
-                      Sign in to view your cart
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Your cart items are saved to your account.
-                    </p>
-                  </div>
-                  <Link
-                    href="/login"
-                    onClick={() => dispatch(closeCart())}
-                    className="bg-black text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
-                  >
-                    Sign in
-                  </Link>
-                </div>
+                <EmptyState
+                  title="Sign in to view your cart"
+                  body="Your cart items are saved to your account."
+                  href="/login"
+                  cta="Sign in"
+                  onNavigate={() => dispatch(closeCart())}
+                />
               ) : isEmpty ? (
-                <div className="flex flex-col items-center justify-center h-full gap-4 px-6 text-center">
-                  <ShoppingBag size={40} className="text-gray-300" />
-                  <div>
-                    <p className="font-medium text-gray-900 mb-1">
-                      Your cart is empty
-                    </p>
-                    <p className="text-sm text-gray-500">
-                      Add some products to get started.
-                    </p>
-                  </div>
-                  <Link
-                    href="/products"
-                    onClick={() => dispatch(closeCart())}
-                    className="bg-black text-white px-6 py-2.5 rounded-xl text-sm font-medium hover:bg-gray-800 transition-colors"
-                  >
-                    Browse products
-                  </Link>
-                </div>
+                <EmptyState
+                  title="Your cart is empty"
+                  body="Add some products to get started."
+                  href="/products"
+                  cta="Browse products"
+                  onNavigate={() => dispatch(closeCart())}
+                />
               ) : (
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-border">
                   {cart.items.map(item => (
                     <CartItem key={item.id} item={item} />
                   ))}
@@ -144,45 +114,35 @@ export default function CartDrawer() {
               )}
             </div>
 
-            {/* Footer — subtotal + checkout */}
             {!isEmpty && !isLoading && cart && (
-              <div className="border-t border-gray-100 px-5 py-4 space-y-4">
-                {/* Subtotal */}
+              <div className="space-y-4 border-t border-border bg-surface px-5 py-5">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-500">
+                    <span className="text-muted">
                       Subtotal ({cart.total_items} items)
                     </span>
-                    <span className="font-semibold text-gray-900">
+                    <span className="font-semibold text-ink">
                       {formatPrice(cart.subtotal)}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-xs text-muted-light">
                     Shipping and discounts calculated at checkout.
                   </p>
                 </div>
 
-                {/* Checkout button */}
                 <Link
                   href="/checkout"
                   onClick={() => dispatch(closeCart())}
-                  className="
-                    flex items-center justify-center gap-2
-                    w-full bg-black text-white
-                    py-3 rounded-xl
-                    font-medium text-sm
-                    hover:bg-gray-800
-                    transition-colors duration-200
-                  "
+                  className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
                 >
                   Checkout
                   <ArrowRight size={16} />
                 </Link>
 
-                {/* Continue shopping */}
                 <button
+                  type="button"
                   onClick={() => dispatch(closeCart())}
-                  className="w-full text-sm text-gray-500 hover:text-black transition-colors"
+                  className="w-full text-sm text-muted transition-colors hover:text-ink"
                 >
                   Continue shopping
                 </button>
@@ -192,5 +152,38 @@ export default function CartDrawer() {
         </>
       )}
     </AnimatePresence>
+  );
+}
+
+function EmptyState({
+  title,
+  body,
+  href,
+  cta,
+  onNavigate,
+}: {
+  title: string;
+  body: string;
+  href: string;
+  cta: string;
+  onNavigate: () => void;
+}) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center gap-4 px-6 text-center">
+      <div className="flex h-16 w-16 items-center justify-center rounded-full bg-surface-warm">
+        <ShoppingBag size={28} className="text-muted-light" strokeWidth={1.5} />
+      </div>
+      <div>
+        <p className="mb-1 font-medium text-ink">{title}</p>
+        <p className="text-sm text-muted">{body}</p>
+      </div>
+      <Link
+        href={href}
+        onClick={onNavigate}
+        className="rounded-lg bg-accent px-6 py-2.5 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
+      >
+        {cta}
+      </Link>
+    </div>
   );
 }

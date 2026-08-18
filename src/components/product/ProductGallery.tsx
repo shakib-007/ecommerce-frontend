@@ -1,4 +1,3 @@
-// src/components/product/ProductGallery.tsx
 'use client';
 
 import { useState } from 'react';
@@ -8,7 +7,7 @@ import { ProductImage } from '@/types';
 import { getImageUrl } from '@/lib/utils';
 
 interface Props {
-  images:      ProductImage[];
+  images: ProductImage[];
   productName: string;
 }
 
@@ -18,8 +17,8 @@ export default function ProductGallery({ images, productName }: Props) {
 
   if (images.length === 0) {
     return (
-      <div className="aspect-square bg-gray-100 rounded-2xl flex items-center justify-center">
-        <span className="text-gray-300 text-sm">No image</span>
+      <div className="flex aspect-square items-center justify-center rounded-2xl bg-surface-warm">
+        <span className="text-sm text-muted-light">No image</span>
       </div>
     );
   }
@@ -34,8 +33,7 @@ export default function ProductGallery({ images, productName }: Props) {
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Main image */}
-      <div className="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden">
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-surface-warm">
         <AnimatePresence mode="wait">
           <motion.img
             key={active}
@@ -45,55 +43,58 @@ export default function ProductGallery({ images, productName }: Props) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-contain p-6 sm:p-10"
           />
         </AnimatePresence>
 
-        {/* Navigation arrows */}
         {images.length > 1 && (
           <>
             <button
+              type="button"
               onClick={prev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1.5 rounded-xl shadow-sm transition-colors"
+              className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full border border-border bg-surface/90 p-2 text-ink shadow-sm transition-colors hover:bg-surface"
+              aria-label="Previous image"
             >
               <ChevronLeft size={18} />
             </button>
             <button
+              type="button"
               onClick={next}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white p-1.5 rounded-xl shadow-sm transition-colors"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full border border-border bg-surface/90 p-2 text-ink shadow-sm transition-colors hover:bg-surface"
+              aria-label="Next image"
             >
               <ChevronRight size={18} />
             </button>
           </>
         )}
 
-        {/* Image counter */}
         {images.length > 1 && (
-          <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-0.5 rounded-full">
+          <div className="absolute bottom-3 right-3 rounded-full bg-ink/70 px-2.5 py-0.5 text-xs text-white">
             {active + 1} / {images.length}
           </div>
         )}
       </div>
 
-      {/* Thumbnails */}
       {images.length > 1 && (
         <div className="flex gap-2 overflow-x-auto pb-1">
           {images.map((img, index) => (
             <button
               key={img.id}
+              type="button"
               onClick={() => setActive(index)}
               className={`
-                shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-colors
-                ${active === index
-                  ? 'border-black'
-                  : 'border-transparent hover:border-gray-300'
+                h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 bg-surface-warm transition-colors
+                ${
+                  active === index
+                    ? 'border-accent'
+                    : 'border-transparent hover:border-border-strong'
                 }
               `}
             >
               <img
                 src={getImageUrl(img.url)}
                 alt={`Thumbnail ${index + 1}`}
-                className="w-full h-full object-cover"
+                className="h-full w-full object-contain p-1"
               />
             </button>
           ))}

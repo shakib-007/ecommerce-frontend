@@ -6,58 +6,57 @@ import { motion } from 'framer-motion';
 import { XCircle, RefreshCw, ArrowLeft } from 'lucide-react';
 
 export default function PaymentFailedPage() {
-  const params      = useSearchParams();
+  const params = useSearchParams();
   const orderNumber = params.get('order');
-  const reason      = params.get('reason');
+  const reason = params.get('reason');
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.3 }}
-        className="bg-white rounded-2xl border border-gray-100 p-8 max-w-md w-full text-center"
+        className="w-full max-w-md rounded-2xl border border-border bg-surface p-8 text-center shadow-[0_8px_30px_rgba(28,25,23,0.04)]"
       >
-        {/* Failed icon */}
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.1, type: 'spring', stiffness: 200 }}
-          className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-5"
+          className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-red-50"
         >
           <XCircle size={32} className="text-red-500" />
         </motion.div>
 
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">
-          Payment Failed
+        <h1 className="mb-2 font-display text-2xl font-semibold text-ink">
+          Payment failed
         </h1>
 
-        <p className="text-gray-500 text-sm mb-1">
+        <p className="mb-1 text-sm text-muted">
           We couldn&apos;t process your payment.
         </p>
 
         {orderNumber && (
-          <p className="text-sm font-medium text-gray-700 mb-2">
+          <p className="mb-2 text-sm font-medium text-ink">
             Order: <span className="font-mono">{orderNumber}</span>
           </p>
         )}
 
         {reason && (
-          <p className="text-xs text-red-500 mb-6">
+          <p className="mb-6 text-xs text-red-500">
             Reason: {reason.replace(/_/g, ' ')}
           </p>
         )}
 
-        <p className="text-sm text-gray-500 mb-8">
-          Your order has been saved. You can retry payment from your orders page,
-          or place a new order.
+        <p className="mb-8 text-sm text-muted">
+          Your order has been saved. Retry payment from your orders page, or
+          place a new order.
         </p>
 
         <div className="flex flex-col gap-3">
           {orderNumber && (
             <Link
               href="/dashboard/orders"
-              className="flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-xl font-medium text-sm hover:bg-gray-800 transition-colors"
+              className="flex items-center justify-center gap-2 rounded-lg bg-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-accent-hover"
             >
               <RefreshCw size={16} />
               Retry payment
@@ -66,7 +65,7 @@ export default function PaymentFailedPage() {
 
           <Link
             href="/checkout"
-            className="flex items-center justify-center gap-2 border border-gray-300 text-gray-700 px-6 py-3 rounded-xl font-medium text-sm hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-center gap-2 rounded-lg border border-border-strong px-6 py-3 text-sm font-medium text-ink transition-colors hover:bg-surface-muted"
           >
             <ArrowLeft size={16} />
             Back to checkout

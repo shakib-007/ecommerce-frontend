@@ -81,19 +81,19 @@ export default function RegisterPage() {
       transition={{ duration: 0.3 }}
     >
       <div className="mb-6 text-center">
-        <h1 className="text-xl font-semibold text-gray-900">
+        <h1 className="font-display text-2xl font-semibold text-ink">
           Create your account
         </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="mt-1 text-sm text-muted">
           Already have an account?{' '}
-          <Link href="/login" className="text-black font-medium hover:underline">
+          <Link href="/login" className="font-medium text-accent hover:text-accent-hover">
             Sign in
           </Link>
         </p>
       </div>
 
       {serverError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+        <div className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3">
           <p className="text-sm text-red-600">{serverError}</p>
         </div>
       )}

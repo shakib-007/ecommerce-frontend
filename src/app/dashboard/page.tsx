@@ -46,17 +46,15 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      {/* Welcome */}
       <div>
-        <h1 className="text-xl font-semibold text-gray-900">
-          Welcome back, {user?.name.split(' ')[0]} 👋
-        </h1>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="font-display text-2xl font-semibold text-ink">
+          Welcome back, {user?.name.split(' ')[0]}
+        </h2>
+        <p className="mt-1 text-sm text-muted">
           Here&apos;s what&apos;s happening with your account.
         </p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-3 gap-4">
         {stats.map(stat => {
           const Icon = stat.icon;
@@ -64,13 +62,13 @@ export default function DashboardPage() {
             <Link
               key={stat.label}
               href={stat.href}
-              className="bg-white rounded-2xl border border-gray-100 p-4 hover:border-gray-300 transition-colors"
+              className="rounded-2xl border border-border bg-surface p-4 transition-colors hover:border-border-strong"
             >
-              <div className="flex items-center gap-2 mb-2">
-                <Icon size={16} className="text-gray-400" />
-                <span className="text-xs text-gray-500">{stat.label}</span>
+              <div className="mb-2 flex items-center gap-2">
+                <Icon size={16} className="text-accent" />
+                <span className="text-xs text-muted">{stat.label}</span>
               </div>
-              <p className="text-2xl font-semibold text-gray-900">
+              <p className="text-2xl font-semibold text-ink">
                 {stat.value}
               </p>
             </Link>
@@ -78,15 +76,14 @@ export default function DashboardPage() {
         })}
       </div>
 
-      {/* Recent orders */}
-      <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">
+      <div className="overflow-hidden rounded-2xl border border-border bg-surface">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <h2 className="text-sm font-semibold text-ink">
             Recent Orders
           </h2>
           <Link
             href="/dashboard/orders"
-            className="text-xs text-gray-500 hover:text-black flex items-center gap-1 transition-colors"
+            className="flex items-center gap-1 text-xs text-accent transition-colors hover:text-accent-hover"
           >
             View all
             <ArrowRight size={12} />
@@ -99,37 +96,37 @@ export default function DashboardPage() {
           </div>
         ) : orders.length === 0 ? (
           <div className="py-10 text-center">
-            <Package size={32} className="text-gray-300 mx-auto mb-3" />
-            <p className="text-sm text-gray-500">No orders yet.</p>
+            <Package size={32} className="mx-auto mb-3 text-muted-light" />
+            <p className="text-sm text-muted">No orders yet.</p>
             <Link
               href="/products"
-              className="text-sm text-black font-medium hover:underline mt-1 inline-block"
+              className="mt-1 inline-block text-sm font-medium text-accent hover:text-accent-hover"
             >
               Start shopping
             </Link>
           </div>
         ) : (
-          <div className="divide-y divide-gray-50">
+          <div className="divide-y divide-border">
             {orders.map(order => (
               <Link
                 key={order.id}
                 href={`/dashboard/orders/${order.id}`}
-                className="flex items-center justify-between px-5 py-4 hover:bg-gray-50 transition-colors"
+                className="flex items-center justify-between px-5 py-4 transition-colors hover:bg-surface-muted"
               >
                 <div>
-                  <p className="text-sm font-medium text-gray-900">
+                  <p className="text-sm font-medium text-ink">
                     {order.order_number}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="mt-0.5 text-xs text-muted-light">
                     {formatDate(order.created_at)}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold text-gray-900">
+                  <span className="text-sm font-semibold text-ink">
                     {formatPrice(order.total)}
                   </span>
                   <span className={`
-                    text-xs px-2.5 py-0.5 rounded-full font-medium
+                    rounded-full px-2.5 py-0.5 text-xs font-medium
                     ${getOrderStatusColor(order.status)}
                   `}>
                     {order.status}

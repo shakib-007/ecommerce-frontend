@@ -1,49 +1,54 @@
-import Link from "next/link";
+import Link from 'next/link';
+
+const shopLinks = [
+  { href: '/products', label: 'All Products' },
+  { href: '/products?featured=true', label: 'Featured' },
+  { href: '/products?sort=newest', label: 'New Arrivals' },
+  { href: '/products?in_stock=true', label: 'In Stock' },
+];
+
+const accountLinks = [
+  { href: '/login', label: 'Sign In' },
+  { href: '/register', label: 'Create Account' },
+  { href: '/dashboard/orders', label: 'My Orders' },
+  { href: '/dashboard/wishlist', label: 'Wishlist' },
+];
+
+const infoLinks = [
+  { href: '/about', label: 'About Us' },
+  { href: '/contact', label: 'Contact' },
+  { href: '/terms', label: 'Terms of Service' },
+  { href: '/privacy', label: 'Privacy Policy' },
+];
 
 export default function Footer() {
   return (
-    <footer className="bg-[#0a0a0a] text-[#e8d5b7] mt-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-        {/* Brand */}
-        <div className="lg:col-span-1">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div
-              className="w-8 h-8 flex items-center justify-center"
-              style={{
-                background: "linear-gradient(135deg, #c8a96e, #e8d5b7)",
-                clipPath: "polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%)",
-              }}
-            >
-              <span className="text-[#0a0a0a] font-black text-xs">fs</span>
-            </div>
-            <span className="text-xl font-black" style={{ fontFamily: "'Georgia', serif" }}>
-              fason
-            </span>
-          </div>
-          <p className="text-sm text-[rgba(232,213,183,0.5)] leading-relaxed">
-            Bangladesh&apos;s trusted online marketplace. Fast delivery, genuine products, secure payments.
+    <footer className="mt-20 border-t border-border bg-ink text-[#f5efe7]">
+      <div className="container-store grid grid-cols-1 gap-10 py-14 sm:grid-cols-2 lg:grid-cols-4">
+        <div>
+          <Link
+            href="/"
+            className="font-display text-2xl font-semibold tracking-tight text-[#faf7f2]"
+          >
+            shopora
+          </Link>
+          <p className="mt-4 max-w-xs text-sm leading-relaxed text-[#f5efe7]/60">
+            Bangladesh&apos;s trusted online marketplace. Fast delivery, genuine
+            products, secure payments.
           </p>
-          <div className="flex gap-3 mt-6">
-            {["Facebook", "Instagram", "Twitter"].map((s) => (
-              <a key={s} href="#" className="w-9 h-9 border border-[rgba(200,169,110,0.2)] flex items-center justify-center text-[#c8a96e] hover:border-[#c8a96e] transition-colors text-xs font-bold">
-                {s[0]}
-              </a>
-            ))}
-          </div>
         </div>
 
-        {/* Shop */}
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-widest text-[#c8a96e] mb-5">Shop</h4>
+          <h4 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+            Shop
+          </h4>
           <ul className="space-y-3">
-            {[
-              { href: "/products", label: "All Products" },
-              { href: "/products?featured=true", label: "Featured" },
-              { href: "/products?sort=newest", label: "New Arrivals" },
-              { href: "/products?in_stock=true", label: "In Stock" },
-            ].map(({ href, label }) => (
+            {shopLinks.map(({ href, label }) => (
               <li key={href}>
-                <Link href={href} className="text-sm text-[rgba(232,213,183,0.6)] hover:text-[#c8a96e] transition-colors">
+                <Link
+                  href={href}
+                  className="text-sm text-[#f5efe7]/60 transition-colors hover:text-accent"
+                >
                   {label}
                 </Link>
               </li>
@@ -51,18 +56,17 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Account */}
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-widest text-[#c8a96e] mb-5">Account</h4>
+          <h4 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+            Account
+          </h4>
           <ul className="space-y-3">
-            {[
-              { href: "/login", label: "Sign In" },
-              { href: "/register", label: "Create Account" },
-              { href: "/dashboard/orders", label: "My Orders" },
-              { href: "/dashboard/profile", label: "Profile" },
-            ].map(({ href, label }) => (
+            {accountLinks.map(({ href, label }) => (
               <li key={href}>
-                <Link href={href} className="text-sm text-[rgba(232,213,183,0.6)] hover:text-[#c8a96e] transition-colors">
+                <Link
+                  href={href}
+                  className="text-sm text-[#f5efe7]/60 transition-colors hover:text-accent"
+                >
                   {label}
                 </Link>
               </li>
@@ -70,33 +74,32 @@ export default function Footer() {
           </ul>
         </div>
 
-        {/* Info */}
         <div>
-          <h4 className="text-xs font-semibold uppercase tracking-widest text-[#c8a96e] mb-5">Info</h4>
+          <h4 className="mb-5 text-[11px] font-semibold uppercase tracking-[0.14em] text-accent">
+            Info
+          </h4>
           <ul className="space-y-3">
-            {[
-              { href: "/about", label: "About Us" },
-              { href: "/contact", label: "Contact" },
-              { href: "/terms", label: "Terms of Service" },
-              { href: "/privacy", label: "Privacy Policy" },
-            ].map(({ href, label }) => (
+            {infoLinks.map(({ href, label }) => (
               <li key={href}>
-                <Link href={href} className="text-sm text-[rgba(232,213,183,0.6)] hover:text-[#c8a96e] transition-colors">
+                <Link
+                  href={href}
+                  className="text-sm text-[#f5efe7]/60 transition-colors hover:text-accent"
+                >
                   {label}
                 </Link>
               </li>
             ))}
           </ul>
-          <div className="mt-6 p-3 border border-[rgba(200,169,110,0.15)]">
-            <p className="text-xs text-[rgba(232,213,183,0.4)] mb-1">Free shipping above</p>
-            <p className="text-lg font-black text-[#c8a96e]" style={{ fontFamily: "'Georgia', serif" }}>৳2,000</p>
+          <div className="mt-6 rounded-xl border border-white/10 bg-white/5 p-4">
+            <p className="mb-1 text-xs text-[#f5efe7]/45">Free shipping above</p>
+            <p className="font-display text-xl font-semibold text-accent">৳2,000</p>
           </div>
         </div>
       </div>
 
-      <div className="border-t border-[rgba(200,169,110,0.1)] px-4 sm:px-6 py-5">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-[rgba(232,213,183,0.3)]">
-          <span>© {new Date().getFullYear()} ShopBD. All rights reserved.</span>
+      <div className="border-t border-white/10">
+        <div className="container-store flex flex-col items-center justify-between gap-2 py-5 text-xs text-[#f5efe7]/35 sm:flex-row">
+          <span>© {new Date().getFullYear()} Shopora. All rights reserved.</span>
           <span>SSLCommerz · Cash on Delivery · Secure Checkout</span>
         </div>
       </div>

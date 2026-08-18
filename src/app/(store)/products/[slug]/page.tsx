@@ -1,12 +1,11 @@
-// src/app/(store)/products/[slug]/page.tsx
 import { notFound } from 'next/navigation';
-import { productsApi } from '@/lib/api/product';
-
-import ProductCard from '@/components/product/ProductCard';
-import { formatPrice } from '@/lib/utils';
 import Link from 'next/link';
+import { Star } from 'lucide-react';
+import { productsApi } from '@/lib/api/product';
+import ProductCard from '@/components/product/ProductCard';
 import ProductGallery from '@/components/product/ProductGallery';
 import VariantSelector from '@/components/product/VariantSelector';
+import { formatPrice, getDiscountPercent } from '@/lib/utils';
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -18,7 +17,7 @@ export async function generateMetadata({ params }: Props) {
   try {
     const res = await productsApi.getBySlug(slug);
     return {
-      title:       res.data.name,
+      title: res.data.name,
       description: res.data.description?.slice(0, 160) ?? '',
     };
   } catch {
@@ -31,111 +30,130 @@ export default async function ProductDetailPage({ params }: Props) {
   let product, related;
 
   try {
-    const res = await productsApi.getBySlug(
-      slug,
-      { next: { revalidate: 30 } }
-    );
+    const res = await productsApi.getBySlug(slug, {
+      next: { revalidate: 30 },
+    });
     product = res.data;
     related = res.related ?? [];
   } catch {
     notFound();
   }
 
-  const avgRating   = product.rating_avg ?? 0;
+  const avgRating = product.rating_avg ?? 0;
   const ratingCount = product.rating_count ?? 0;
+  const compareAt =
+    product.base_price > product.price_from ? product.base_price : null;
+  const discount = getDiscountPercent(product.price_from, compareAt);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-16 py-8">
-
+    <div className="container-store py-8 md:py-10">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <a href="/" className="hover:text-black transition-colors">Home</a>
-        <span>/</span>
-        <a href="/products" className="hover:text-black transition-colors">Products</a>
-        {product.category && (
-          <>
-            <span>/</span>
-            <Link
-              href={`/products?category=${product.category.slug}`}
-              className="hover:text-black transition-colors"
-            >
-              {product.category.name}
+      <nav className="mb-6 text-sm text-muted" aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="transition-colors hover:text-ink">
+              Home
             </Link>
-          </>
-        )}
-        <span>/</span>
-        <span className="text-gray-700 truncate max-w-[200px]">
-          {product.name}
-        </span>
+          </li>
+          <li className="text-muted-light" aria-hidden>
+            /
+          </li>
+          <li>
+            <Link href="/products" className="transition-colors hover:text-ink">
+              Products
+            </Link>
+          </li>
+          {product.category && (
+            <>
+              <li className="text-muted-light" aria-hidden>
+                /
+              </li>
+              <li>
+                <Link
+                  href={`/products?category=${product.category.slug}`}
+                  className="transition-colors hover:text-ink"
+                >
+                  {product.category.name}
+                </Link>
+              </li>
+            </>
+          )}
+          <li className="text-muted-light" aria-hidden>
+            /
+          </li>
+          <li className="max-w-[200px] truncate text-ink">{product.name}</li>
+        </ol>
       </nav>
 
-      {/* Main product section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-16">
-
-        {/* Left — Gallery */}
+      {/* Main */}
+      <div className="mb-16 grid grid-cols-1 gap-10 lg:grid-cols-2 lg:gap-14">
         <ProductGallery images={product.images} productName={product.name} />
 
-        {/* Right — Info + Variant selector */}
         <div className="flex flex-col">
-
-          {/* Brand */}
           {product.brand && (
             <Link
               href={`/products?brand=${product.brand.slug}`}
-              className="text-sm text-gray-400 hover:text-black mb-1 transition-colors w-fit"
+              className="mb-2 w-fit text-[11px] font-semibold uppercase tracking-[0.14em] text-muted transition-colors hover:text-accent"
             >
               {product.brand.name}
             </Link>
           )}
 
-          {/* Name */}
-          <h1 className="text-2xl font-semibold text-gray-900 mb-3">
+          <h1 className="font-display text-3xl font-semibold tracking-tight text-ink text-balance sm:text-4xl">
             {product.name}
           </h1>
 
-          {/* Rating */}
           {ratingCount > 0 && (
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex">
+            <div className="mt-3 flex items-center gap-2">
+              <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map(star => (
-                  <span
+                  <Star
                     key={star}
-                    className={`text-base ${
+                    size={14}
+                    className={
                       star <= Math.round(avgRating)
-                        ? 'text-yellow-400'
-                        : 'text-gray-200'
-                    }`}
-                  >
-                    ★
-                  </span>
+                        ? 'fill-accent text-accent'
+                        : 'fill-transparent text-border-strong'
+                    }
+                  />
                 ))}
               </div>
-              <span className="text-sm text-gray-500">
-                {avgRating.toFixed(1)} ({ratingCount} reviews)
+              <span className="text-sm font-medium text-ink">
+                {avgRating.toFixed(1)}
+              </span>
+              <span className="text-sm text-muted">
+                ({ratingCount} reviews)
               </span>
             </div>
           )}
 
-          {/* Base price */}
-          <div className="mb-6">
-            <span className="text-3xl font-bold text-gray-900">
+          <div className="mt-5 flex flex-wrap items-baseline gap-3">
+            <span className="text-3xl font-bold text-ink">
               {formatPrice(product.price_from)}
             </span>
-            <span className="text-sm text-gray-400 ml-2">
+            {compareAt !== null && (
+              <span className="text-base text-muted line-through">
+                {formatPrice(compareAt)}
+              </span>
+            )}
+            {discount !== null && (
+              <span className="rounded-md bg-accent px-2 py-0.5 text-xs font-semibold text-white">
+                −{discount}%
+              </span>
+            )}
+            <span className="w-full text-sm text-muted sm:w-auto">
               Starting price
             </span>
           </div>
 
-          {/* Variant selector — client component */}
-          <VariantSelector product={product} />
+          <div className="mt-8">
+            <VariantSelector product={product} />
+          </div>
 
-          {/* Description */}
           {product.description && (
-            <div className="mt-6 pt-6 border-t border-gray-100">
-              <h3 className="text-sm font-semibold text-gray-900 mb-2">
-                Description
-              </h3>
-              <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+            <div className="mt-8 border-t border-border pt-6">
+              <h3 className="mb-2 text-sm font-semibold text-ink">Description</h3>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-muted">
                 {product.description}
               </p>
             </div>
@@ -146,43 +164,41 @@ export default async function ProductDetailPage({ params }: Props) {
       {/* Reviews */}
       {product.reviews && product.reviews.length > 0 && (
         <section className="mb-16">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Customer Reviews
+          <p className="section-eyebrow mb-2">Reviews</p>
+          <h2 className="mb-6 font-display text-2xl font-semibold text-ink sm:text-3xl">
+            Customer reviews
           </h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {product.reviews.map((review: any) => (
+            {product.reviews.map(review => (
               <div
                 key={review.id}
-                className="bg-white border border-gray-100 rounded-2xl p-4"
+                className="rounded-xl border border-border bg-surface p-5"
               >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-900">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-sm font-medium text-ink">
                     {review.user_name}
                   </span>
-                  <div className="flex">
+                  <div className="flex items-center gap-0.5">
                     {[1, 2, 3, 4, 5].map(star => (
-                      <span
+                      <Star
                         key={star}
-                        className={`text-xs ${
+                        size={12}
+                        className={
                           star <= review.rating
-                            ? 'text-yellow-400'
-                            : 'text-gray-200'
-                        }`}
-                      >
-                        ★
-                      </span>
+                            ? 'fill-accent text-accent'
+                            : 'fill-transparent text-border-strong'
+                        }
+                      />
                     ))}
                   </div>
                 </div>
                 {review.title && (
-                  <p className="text-sm font-medium text-gray-800 mb-1">
+                  <p className="mb-1 text-sm font-medium text-ink">
                     {review.title}
                   </p>
                 )}
                 {review.body && (
-                  <p className="text-sm text-gray-500 line-clamp-3">
-                    {review.body}
-                  </p>
+                  <p className="line-clamp-3 text-sm text-muted">{review.body}</p>
                 )}
               </div>
             ))}
@@ -190,15 +206,16 @@ export default async function ProductDetailPage({ params }: Props) {
         </section>
       )}
 
-      {/* Related products */}
+      {/* Related */}
       {related.length > 0 && (
-        <section>
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <section className="pb-8">
+          <p className="section-eyebrow mb-2">More to explore</p>
+          <h2 className="mb-6 font-display text-2xl font-semibold text-ink sm:text-3xl">
             You might also like
           </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-            {related.map((product: any) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {related.map((item: (typeof related)[number]) => (
+              <ProductCard key={item.id} product={item} />
             ))}
           </div>
         </section>

@@ -3,9 +3,20 @@ export function formatPrice(amount?: number | null): string {
   const value = Number(amount ?? 0);
 
   return `৳${value.toLocaleString('en-BD', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   })}`;
+}
+
+/** Discount % when list/compare price is higher than selling price. */
+export function getDiscountPercent(
+  price?: number | null,
+  compareAt?: number | null
+): number | null {
+  const p = Number(price ?? 0);
+  const c = Number(compareAt ?? 0);
+  if (!p || !c || c <= p) return null;
+  return Math.round(((c - p) / c) * 100);
 }
 
 export function formatDate(dateString: string): string {

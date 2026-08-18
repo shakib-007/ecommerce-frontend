@@ -1,16 +1,26 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { DM_Sans, Playfair_Display } from 'next/font/google';
 import Providers from '@/components/Providers';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const dmSans = DM_Sans({
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+  display: 'swap',
+});
+
+const playfair = Playfair_Display({
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: {
-    default: 'fason — Best deals every day',
-    template: '%s | fason',
+    default: 'Shopora — Best deals every day',
+    template: '%s | Shopora',
   },
-  description: 'Shop the best products at fason.',
+  description: 'Shop the best products at Shopora.',
 };
 
 export default function RootLayout({
@@ -20,10 +30,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
-        <Providers>
-          {children}
-        </Providers>
+      <body className={`${dmSans.variable} ${playfair.variable} font-sans antialiased`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

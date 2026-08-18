@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { ChevronDown, ChevronUp, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { SlidersHorizontal, X } from 'lucide-react';
 import { Category, Brand } from '@/types';
+import { formatPrice } from '@/lib/utils';
 import { useProductsNav } from './ProductsNavProvider';
 
 interface Props {
@@ -11,19 +12,70 @@ interface Props {
   currentFilters: Record<string, string | undefined>;
 }
 
+function CheckboxRow({
+  checked,
+  label,
+  count,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  count?: number;
+  onChange: () => void;
+}) {
+  return (
+    <label className="flex cursor-pointer items-center gap-2.5 py-1.5">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        className="peer sr-only"
+      />
+      <span
+        className={`
+          flex h-4 w-4 shrink-0 items-center justify-center rounded-[3px] border transition-colors
+          ${
+            checked
+              ? 'border-ink bg-ink text-white'
+              : 'border-border-strong bg-surface'
+          }
+        `}
+        aria-hidden
+      >
+        {checked && (
+          <svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+            <path
+              d="M1 4L3.5 6.5L9 1"
+              stroke="currentColor"
+              strokeWidth="1.75"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </span>
+      <span className="flex-1 text-sm text-ink">{label}</span>
+      {count !== undefined && (
+        <span className="text-xs text-muted-light">{count}</span>
+      )}
+    </label>
+  );
+}
+
 export default function ProductFilters({
   categories,
   brands,
   currentFilters,
 }: Props) {
   const { navigate, clearAll, isPending } = useProductsNav();
-
   const [priceMin, setPriceMin] = useState(currentFilters.min_price ?? '');
   const [priceMax, setPriceMax] = useState(currentFilters.max_price ?? '');
-  const [showCats, setShowCats] = useState(true);
-  const [showBrands, setShowBrands] = useState(true);
-  const [showPrice, setShowPrice] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setPriceMin(currentFilters.min_price ?? '');
+    setPriceMax(currentFilters.max_price ?? '');
+  }, [currentFilters.min_price, currentFilters.max_price]);
 
   function updateFilter(key: string, value: string | undefined) {
     navigate({ [key]: value });
@@ -36,225 +88,161 @@ export default function ProductFilters({
     });
   }
 
+  const rootCategories = categories.filter(c => !c.parent);
+
   const hasActiveFilters = !!(
     currentFilters.category ||
     currentFilters.brand ||
     currentFilters.min_price ||
     currentFilters.max_price ||
-    currentFilters.in_stock
+    currentFilters.in_stock ||
+    currentFilters.featured
   );
 
   const content = (
-    <div className={`space-y-6 ${isPending ? 'opacity-70' : ''}`}>
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <SlidersHorizontal size={16} className="text-gray-500" />
-          <span className="text-sm font-semibold text-gray-900">Filters</span>
+    <div className={`space-y-0 ${isPending ? 'opacity-70' : ''}`}>
+      {/* Category */}
+      <div className="border-b border-border py-5 first:pt-0">
+        <h3 className="mb-3 text-sm font-semibold text-ink">Category</h3>
+        <div className="space-y-0.5">
+          {rootCategories.map(cat => (
+            <CheckboxRow
+              key={cat.id}
+              checked={currentFilters.category === cat.slug}
+              label={cat.name}
+              count={cat.products_count}
+              onChange={() =>
+                updateFilter(
+                  'category',
+                  currentFilters.category === cat.slug ? undefined : cat.slug
+                )
+              }
+            />
+          ))}
         </div>
-        {hasActiveFilters && (
-          <button
-            onClick={clearAll}
-            className="text-xs text-red-500 hover:text-red-700"
-          >
-            Clear all
-          </button>
-        )}
       </div>
 
-      <div className="flex items-center justify-between">
-        <span className="text-sm font-medium text-gray-700">In stock only</span>
+      {/* Price */}
+      <div className="border-b border-border py-5">
+        <h3 className="mb-3 text-sm font-semibold text-ink">Price (৳)</h3>
+        <div className="flex items-center gap-2">
+          <input
+            type="number"
+            placeholder="Min"
+            value={priceMin}
+            onChange={e => setPriceMin(e.target.value)}
+            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-ink"
+          />
+          <span className="shrink-0 text-muted-light">–</span>
+          <input
+            type="number"
+            placeholder="Max"
+            value={priceMax}
+            onChange={e => setPriceMax(e.target.value)}
+            className="w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-ink outline-none focus:border-ink"
+          />
+        </div>
+        {(priceMin || priceMax) && (
+          <p className="mt-2 text-xs text-muted">
+            {formatPrice(Number(priceMin || 0))} –{' '}
+            {priceMax ? formatPrice(Number(priceMax)) : '∞'}
+          </p>
+        )}
         <button
-          onClick={() =>
+          type="button"
+          onClick={applyPriceFilter}
+          className="mt-3 w-full rounded-lg border border-ink py-2 text-sm font-medium text-ink transition-colors hover:bg-ink hover:text-white"
+        >
+          Apply price
+        </button>
+      </div>
+
+      {/* Brand */}
+      <div className="border-b border-border py-5">
+        <h3 className="mb-3 text-sm font-semibold text-ink">Brand</h3>
+        <div className="max-h-48 space-y-0.5 overflow-y-auto pr-1">
+          {brands.map(brand => (
+            <CheckboxRow
+              key={brand.id}
+              checked={currentFilters.brand === brand.slug}
+              label={brand.name}
+              count={brand.products_count}
+              onChange={() =>
+                updateFilter(
+                  'brand',
+                  currentFilters.brand === brand.slug ? undefined : brand.slug
+                )
+              }
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Availability */}
+      <div className="border-b border-border py-5">
+        <h3 className="mb-3 text-sm font-semibold text-ink">Availability</h3>
+        <CheckboxRow
+          checked={currentFilters.in_stock === 'true'}
+          label="In stock only"
+          onChange={() =>
             updateFilter(
               'in_stock',
               currentFilters.in_stock === 'true' ? undefined : 'true'
             )
           }
-          className={`
-            relative w-10 h-5 rounded-full transition-colors duration-200
-            ${currentFilters.in_stock === 'true' ? 'bg-black' : 'bg-gray-200'}
-          `}
-        >
-          <span
-            className={`
-            absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full
-            transition-transform duration-200
-            ${currentFilters.in_stock === 'true' ? 'translate-x-5' : ''}
-          `}
-          />
-        </button>
+        />
+        <CheckboxRow
+          checked={currentFilters.featured === 'true'}
+          label="Featured"
+          onChange={() =>
+            updateFilter(
+              'featured',
+              currentFilters.featured === 'true' ? undefined : 'true'
+            )
+          }
+        />
       </div>
 
-      <div>
-        <button
-          onClick={() => setShowCats(!showCats)}
-          className="flex items-center justify-between w-full mb-3"
-        >
-          <span className="text-sm font-semibold text-gray-900">Category</span>
-          {showCats ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
-
-        {showCats && (
-          <div className="space-y-1">
-            <button
-              onClick={() => updateFilter('category', undefined)}
-              className={`
-                w-full text-left text-sm px-3 py-1.5 rounded-lg transition-colors
-                ${
-                  !currentFilters.category
-                    ? 'bg-black text-white'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }
-              `}
-            >
-              All categories
-            </button>
-
-            {categories
-              .filter(c => !c.parent)
-              .map(cat => (
-                <div key={cat.id}>
-                  <button
-                    onClick={() => updateFilter('category', cat.slug)}
-                    className={`
-                      w-full text-left text-sm px-3 py-1.5 rounded-lg transition-colors
-                      ${
-                        currentFilters.category === cat.slug
-                          ? 'bg-black text-white'
-                          : 'text-gray-600 hover:bg-gray-100'
-                      }
-                    `}
-                  >
-                    {cat.name}
-                    {cat.products_count !== undefined && (
-                      <span className="ml-1 text-xs opacity-60">
-                        ({cat.products_count})
-                      </span>
-                    )}
-                  </button>
-
-                  {cat.children?.map(sub => (
-                    <button
-                      key={sub.id}
-                      onClick={() => updateFilter('category', sub.slug)}
-                      className={`
-                        w-full text-left text-sm pl-6 pr-3 py-1 rounded-lg transition-colors
-                        ${
-                          currentFilters.category === sub.slug
-                            ? 'bg-gray-100 text-black font-medium'
-                            : 'text-gray-500 hover:bg-gray-50'
-                        }
-                      `}
-                    >
-                      {sub.name}
-                    </button>
-                  ))}
-                </div>
-              ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <button
-          onClick={() => setShowBrands(!showBrands)}
-          className="flex items-center justify-between w-full mb-3"
-        >
-          <span className="text-sm font-semibold text-gray-900">Brand</span>
-          {showBrands ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
-
-        {showBrands && (
-          <div className="space-y-1">
-            {brands.map(brand => (
-              <label
-                key={brand.id}
-                className="flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-gray-50 cursor-pointer"
-              >
-                <input
-                  type="checkbox"
-                  checked={currentFilters.brand === brand.slug}
-                  onChange={() =>
-                    updateFilter(
-                      'brand',
-                      currentFilters.brand === brand.slug
-                        ? undefined
-                        : brand.slug
-                    )
-                  }
-                  className="w-3.5 h-3.5 accent-black"
-                />
-                <span className="text-sm text-gray-700">{brand.name}</span>
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div>
-        <button
-          onClick={() => setShowPrice(!showPrice)}
-          className="flex items-center justify-between w-full mb-3 text-black"
-        >
-          <span className="text-sm font-semibold text-gray-900">Price range</span>
-          {showPrice ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-        </button>
-
-        {showPrice && (
-          <div className="space-y-3 text-black">
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                placeholder="Min ৳"
-                value={priceMin}
-                onChange={e => setPriceMin(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl outline-none focus:border-black"
-              />
-              <span className="text-gray-400 shrink-0">—</span>
-              <input
-                type="number"
-                placeholder="Max ৳"
-                value={priceMax}
-                onChange={e => setPriceMax(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-xl outline-none focus:border-black"
-              />
-            </div>
-            <button
-              onClick={applyPriceFilter}
-              className="w-full py-2 text-sm font-medium bg-black text-white rounded-xl hover:bg-gray-800"
-            >
-              Apply
-            </button>
-          </div>
-        )}
-      </div>
+      {hasActiveFilters && (
+        <div className="pt-5">
+          <button
+            type="button"
+            onClick={clearAll}
+            className="w-full rounded-lg border border-ink py-2.5 text-sm font-medium text-ink transition-colors hover:bg-ink hover:text-white"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
     </div>
   );
 
   return (
     <>
-      <div className="lg:hidden mb-4">
+      <div className="mb-4 lg:hidden">
         <button
+          type="button"
           onClick={() => setMobileOpen(!mobileOpen)}
-          className="flex items-center gap-2 text-sm text-black font-medium border border-gray-300 px-4 py-2 rounded-xl"
+          className="flex items-center gap-2 rounded-lg border border-border-strong bg-surface px-4 py-2.5 text-sm font-medium text-ink"
         >
           <SlidersHorizontal size={16} />
-          {mobileOpen ? 'Hide filters' : 'Show filters'}
+          {mobileOpen ? 'Hide filters' : 'Filters'}
           {hasActiveFilters && (
-            <span className="bg-black text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 text-[10px] font-semibold text-white">
               !
             </span>
           )}
+          {mobileOpen && <X size={16} className="ml-1" />}
         </button>
 
         {mobileOpen && (
-          <div className="mt-4 p-4 bg-white rounded-2xl border border-gray-100">
+          <div className="mt-4 rounded-xl border border-border bg-surface p-5">
             {content}
           </div>
         )}
       </div>
 
-      <div className="hidden lg:block bg-white rounded-2xl border border-gray-100 p-5">
+      <div className="hidden rounded-xl border border-border bg-surface p-5 lg:block">
         {content}
       </div>
     </>

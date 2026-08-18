@@ -11,19 +11,19 @@ export default function AuthLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        {/* <div className="text-center mb-8">
-          <Link href="/" className="text-2xl font-bold text-black">
-            fason
+        <div className="mb-8 text-center">
+          <Link
+            href="/"
+            className="font-display text-3xl font-semibold tracking-tight text-ink transition-colors hover:text-accent"
+          >
+            shopora
           </Link>
-          <p className="text-sm text-gray-500 mt-1">
-            Best deals every day
-          </p>
-        </div> */}
+          <p className="mt-1 text-sm text-muted">Best deals every day</p>
+        </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+        <div className="rounded-2xl border border-border bg-surface p-8 shadow-[0_8px_30px_rgba(28,25,23,0.04)]">
           {children}
         </div>
       </div>

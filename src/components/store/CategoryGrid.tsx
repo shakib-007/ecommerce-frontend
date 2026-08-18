@@ -3,77 +3,77 @@
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Category } from '@/types';
+import { getImageUrl } from '@/lib/utils';
 
 interface Props {
   categories: Category[];
 }
 
-// Assign a background color per category for visual variety
-const categoryColors = [
-  'bg-blue-50   hover:bg-blue-100',
-  'bg-purple-50 hover:bg-purple-100',
-  'bg-green-50  hover:bg-green-100',
-  'bg-orange-50 hover:bg-orange-100',
-  'bg-pink-50   hover:bg-pink-100',
-  'bg-yellow-50 hover:bg-yellow-100',
-];
+/** Lifestyle fallbacks when API has no category image — matches Lovable mood. */
+const FALLBACK_IMAGES: Record<string, string> = {
+  electronics:
+    'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=900&q=80',
+  apparel:
+    'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=900&q=80',
+  clothing:
+    'https://images.unsplash.com/photo-1556905055-8f358a7a47b2?auto=format&fit=crop&w=900&q=80',
+  home: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=900&q=80',
+  essentials:
+    'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=900&q=80',
+  default:
+    'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=900&q=80',
+};
 
-export default function CategoryGrid({ categories }: Props) {
-  // Only show root categories (no parent)
-  const rootCategories = categories.filter(c => !c.parent);
-
-  return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-      {rootCategories.map((category, index) => (
-        <motion.div
-          key={category.id}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: index * 0.05 }}
-        >
-          <Link
-            href={`/products?category=${category.slug}`}
-            className={`
-              flex flex-col items-center justify-center
-              p-4 rounded-2xl text-center
-              transition-colors duration-200 cursor-pointer
-              ${categoryColors[index % categoryColors.length]}
-            `}
-          >
-            <span className="text-2xl mb-2">
-              {getCategoryEmoji(category.name)}
-            </span>
-            <span className="text-sm font-medium text-gray-800 leading-tight">
-              {category.name}
-            </span>
-            {category.products_count !== undefined && (
-              <span className="text-xs text-gray-400 mt-0.5">
-                {category.products_count} items
-              </span>
-            )}
-          </Link>
-        </motion.div>
-      ))}
-    </div>
-  );
+function fallbackFor(name: string, slug: string): string {
+  const key = `${slug} ${name}`.toLowerCase();
+  for (const [k, url] of Object.entries(FALLBACK_IMAGES)) {
+    if (k !== 'default' && key.includes(k)) return url;
+  }
+  return FALLBACK_IMAGES.default;
 }
 
-// Simple emoji mapping for categories
-function getCategoryEmoji(name: string): string {
-  const map: Record<string, string> = {
-    'electronics':      '📱',
-    'clothing':         '👕',
-    'home & living':    '🏠',
-    'sports & outdoors':'⚽',
-    'books':            '📚',
-    'beauty':           '💄',
-    'toys':             '🧸',
-    'food':             '🍔',
-  };
+export default function CategoryGrid({ categories }: Props) {
+  const rootCategories = categories.filter(c => !c.parent).slice(0, 4);
 
-  const key = name.toLowerCase();
-  for (const [k, v] of Object.entries(map)) {
-    if (key.includes(k)) return v;
-  }
-  return '🛍️';
+  return (
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
+      {rootCategories.map((category, index) => {
+        const src = category.image_url
+          ? getImageUrl(category.image_url)
+          : fallbackFor(category.name, category.slug);
+
+        return (
+          <motion.div
+            key={category.id}
+            initial={{ opacity: 0, y: 14 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-40px' }}
+            transition={{ delay: index * 0.06, duration: 0.45 }}
+          >
+            <Link
+              href={`/products?category=${category.slug}`}
+              className="group relative block aspect-[4/5] overflow-hidden rounded-2xl"
+            >
+              <img
+                src={src}
+                alt={category.name}
+                className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/15 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-5 sm:p-6">
+                <h3 className="font-display text-xl font-semibold text-white sm:text-2xl">
+                  {category.name}
+                </h3>
+                {category.products_count !== undefined && (
+                  <p className="mt-1 text-sm text-white/75">
+                    {category.products_count.toLocaleString('en-BD')} products
+                  </p>
+                )}
+              </div>
+            </Link>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
 }

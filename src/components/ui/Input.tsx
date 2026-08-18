@@ -1,17 +1,16 @@
-// src/components/ui/Input.tsx
 'use client';
 
 interface InvalidProp {
-  errors:  any;
-  touched: any;
+  errors: Record<string, unknown>;
+  touched: Record<string, unknown>;
 }
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  label?:      string;
-  error?:      string;
+  label?: string;
+  error?: string;
   helperText?: string;
   showAsterisk?: boolean;
-  invalid?:    InvalidProp;
+  invalid?: InvalidProp;
 }
 
 export default function Input({
@@ -27,23 +26,19 @@ export default function Input({
 }: InputProps) {
   const inputId = id || name || label?.toLowerCase().replace(/\s+/g, '-');
 
-  // If invalid prop passed, extract error using field name automatically
-  // This is what makes {...getFieldProps('email')} + invalid={{ errors, touched }} work
-  const fieldError = invalid && name
-    ? invalid.touched[name] && invalid.errors[name]
-      ? invalid.errors[name]
-      : undefined
-    : error;
+  const fieldError =
+    invalid && name
+      ? invalid.touched[name] && invalid.errors[name]
+        ? String(invalid.errors[name])
+        : undefined
+      : error;
 
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label
-          htmlFor={inputId}
-          className="text-sm font-medium text-gray-700"
-        >
+        <label htmlFor={inputId} className="text-sm font-medium text-ink">
           {label}
-          {showAsterisk && <span className="text-red-500 ml-1">*</span>}
+          {showAsterisk && <span className="ml-1 text-red-500">*</span>}
         </label>
       )}
 
@@ -51,25 +46,24 @@ export default function Input({
         id={inputId}
         name={name}
         className={`
-          w-full px-4 py-2.5 rounded-xl border text-sm text-black
+          w-full rounded-lg border px-4 py-2.5 text-sm text-ink
           outline-none transition-all duration-200
-          placeholder:text-gray-400
-          ${fieldError
-            ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
-            : 'border-gray-300 focus:border-black focus:ring-2 focus:ring-gray-100'
+          placeholder:text-muted-light
+          ${
+            fieldError
+              ? 'border-red-400 focus:border-red-500 focus:ring-2 focus:ring-red-100'
+              : 'border-border-strong focus:border-ink focus:ring-2 focus:ring-accent-soft'
           }
-          disabled:bg-gray-50 disabled:text-gray-500
+          disabled:bg-surface-muted disabled:text-muted
           ${className}
         `}
         {...props}
       />
 
-      {fieldError && (
-        <p className="text-xs text-red-500">{fieldError}</p>
-      )}
+      {fieldError && <p className="text-xs text-red-500">{fieldError}</p>}
 
       {helperText && !fieldError && (
-        <p className="text-xs text-gray-400">{helperText}</p>
+        <p className="text-xs text-muted-light">{helperText}</p>
       )}
     </div>
   );

@@ -1,8 +1,10 @@
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { productsApi } from '@/lib/api/product';
 
 import ProductFilters from '@/components/store/ProductFilters';
 import ProductResults from '@/components/store/ProductResults';
+import ProductSort from '@/components/store/ProductSort';
 import { ProductsNavProvider } from '@/components/store/ProductsNavProvider';
 import {
   ProductsListingSkeleton,
@@ -59,23 +61,25 @@ export default async function ProductsPage({ searchParams }: Props) {
       | 'popular'
       | undefined,
     page: params.page ? Number(params.page) : 1,
-    per_page: 16,
+    per_page: 12,
   };
 
-  // Categories/brands change rarely — cache them so filter clicks only wait on products.
   const [categoriesRes, brandsRes] = await Promise.all([
-    productsApi.getCategories({ next: { revalidate: 3600 } }).catch(() => ({ data: [] })),
-    productsApi.getBrands({ next: { revalidate: 3600 } }).catch(() => ({ data: [] })),
+    productsApi.getCategories({ next: { revalidate: 3600 } }).catch(() => ({ data: [] as Awaited<ReturnType<typeof productsApi.getCategories>>['data'] })),
+    productsApi.getBrands({ next: { revalidate: 3600 } }).catch(() => ({ data: [] as Awaited<ReturnType<typeof productsApi.getBrands>>['data'] })),
   ]);
 
   const heading =
     params.featured === 'true'
-      ? 'Featured Products'
+      ? 'Featured products'
       : params.search
-        ? `Results for "${params.search}"`
+        ? `Results for “${params.search}”`
         : params.category
-          ? params.category.replace(/-/g, ' ')
-          : 'All Products';
+          ? (
+              categoriesRes.data.find(c => c.slug === params.category)?.name ??
+              params.category.replace(/-/g, ' ')
+            )
+          : 'All products';
 
   const resultsKey = [
     params.category,
@@ -90,15 +94,39 @@ export default async function ProductsPage({ searchParams }: Props) {
   ].join('|');
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">{heading}</h1>
-      </div>
+    <div className="container-store py-8 md:py-10">
+      {/* Breadcrumb */}
+      <nav className="mb-4 text-sm text-muted" aria-label="Breadcrumb">
+        <ol className="flex flex-wrap items-center gap-1.5">
+          <li>
+            <Link href="/" className="transition-colors hover:text-ink">
+              Home
+            </Link>
+          </li>
+          <li aria-hidden className="text-muted-light">
+            /
+          </li>
+          <li className="text-ink">All products</li>
+        </ol>
+      </nav>
 
       <Suspense fallback={<ProductsPageSkeleton />}>
         <ProductsNavProvider>
-          <div className="flex flex-col lg:flex-row gap-8">
-            <aside className="w-full lg:w-64 shrink-0">
+          {/* Title + sort */}
+          <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h1 className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+                {heading}
+              </h1>
+              <p className="mt-2 text-sm text-muted">
+                Browse the full catalog · updated hourly
+              </p>
+            </div>
+            <ProductSort currentSort={params.sort} />
+          </div>
+
+          <div className="flex flex-col gap-8 lg:flex-row">
+            <aside className="w-full shrink-0 lg:w-64 xl:w-72">
               <ProductFilters
                 categories={categoriesRes.data}
                 brands={brandsRes.data}
@@ -106,13 +134,16 @@ export default async function ProductsPage({ searchParams }: Props) {
               />
             </aside>
 
-            <div className="flex-1 min-w-0">
+            <div className="min-w-0 flex-1">
               <Suspense key={resultsKey} fallback={<ProductsListingSkeleton />}>
                 <ProductResults
                   filters={filters}
                   showFeaturedBadge={params.featured !== 'true'}
                   currentSort={params.sort}
                   currentFilters={params}
+                  categories={categoriesRes.data}
+                  brands={brandsRes.data}
+                  showToolbar={false}
                 />
               </Suspense>
             </div>

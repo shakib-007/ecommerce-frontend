@@ -1,7 +1,7 @@
-// src/components/cart/CartItem.tsx
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import { CartItem as CartItemType } from '@/types';
@@ -9,14 +9,13 @@ import { useAppDispatch } from '@/store/hooks';
 import { setCart } from '@/store/slices/cartSlice';
 import { cartApi } from '@/lib/api/cart';
 import { formatPrice, getImageUrl } from '@/lib/utils';
-import Link from 'next/link';
 
 interface Props {
   item: CartItemType;
 }
 
 export default function CartItem({ item }: Props) {
-  const dispatch  = useAppDispatch();
+  const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
 
   async function updateQty(newQty: number) {
@@ -25,8 +24,10 @@ export default function CartItem({ item }: Props) {
     try {
       const res = await cartApi.updateItem(item.id, newQty);
       dispatch(setCart(res.data));
-    } catch (error: any) {
-      alert(error.message || 'Failed to update cart');
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to update cart';
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -37,8 +38,10 @@ export default function CartItem({ item }: Props) {
     try {
       const res = await cartApi.removeItem(item.id);
       dispatch(setCart(res.data));
-    } catch (error: any) {
-      alert(error.message || 'Failed to remove item');
+    } catch (error: unknown) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to remove item';
+      alert(message);
     } finally {
       setLoading(false);
     }
@@ -52,75 +55,75 @@ export default function CartItem({ item }: Props) {
       exit={{ opacity: 0, x: -20 }}
       className={`flex gap-3 px-5 py-4 transition-opacity ${loading ? 'opacity-50' : ''}`}
     >
-      {/* Image */}
       <Link
         href={`/products/${item.variant.product.slug}`}
         className="shrink-0"
       >
-        <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-50">
+        <div className="h-16 w-16 overflow-hidden rounded-lg bg-surface-warm">
           {item.variant.product.image ? (
             <img
               src={getImageUrl(item.variant.product.image)}
               alt={item.variant.product.name}
-              className="w-full h-full object-cover"
+              className="h-full w-full object-contain p-1"
             />
           ) : (
-            <div className="w-full h-full bg-gray-100" />
+            <div className="h-full w-full bg-surface-muted" />
           )}
         </div>
       </Link>
 
-      {/* Info */}
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <Link href={`/products/${item.variant.product.slug}`}>
-          <p className="text-sm font-medium text-gray-900 leading-snug line-clamp-1 hover:underline">
+          <p className="line-clamp-1 text-sm font-medium leading-snug text-ink hover:underline">
             {item.variant.product.name}
           </p>
         </Link>
 
-        {/* Variant attributes */}
-        <div className="flex flex-wrap gap-1 mt-0.5 mb-2">
+        <div className="mb-2 mt-0.5 flex flex-wrap gap-1">
           {item.variant.attributes.map((attr, i) => (
-            <span key={i} className="text-xs text-gray-400">
+            <span key={i} className="text-xs text-muted">
               {attr.group}: {attr.value}
               {i < item.variant.attributes.length - 1 && ','}
             </span>
           ))}
         </div>
 
-        {/* Price + qty controls */}
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold text-gray-900">
+        <div className="flex items-center justify-between gap-2">
+          <span className="text-sm font-semibold text-ink">
             {formatPrice(item.line_total)}
           </span>
 
           <div className="flex items-center gap-2">
-            {/* Qty controls */}
-            <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
+            <div className="flex items-center overflow-hidden rounded-md border border-border">
               <button
+                type="button"
                 onClick={() => updateQty(item.qty - 1)}
                 disabled={loading || item.qty <= 1}
-                className="p-1.5 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                className="p-1.5 text-ink transition-colors hover:bg-surface-muted disabled:opacity-40"
+                aria-label="Decrease quantity"
               >
                 <Minus size={12} />
               </button>
-              <span className="w-7 text-center text-xs font-medium">
+              <span className="w-7 text-center text-xs font-medium text-ink">
                 {item.qty}
               </span>
               <button
+                type="button"
                 onClick={() => updateQty(item.qty + 1)}
                 disabled={loading || item.qty >= item.variant.stock_qty}
-                className="p-1.5 hover:bg-gray-50 disabled:opacity-40 transition-colors"
+                className="p-1.5 text-ink transition-colors hover:bg-surface-muted disabled:opacity-40"
+                aria-label="Increase quantity"
               >
                 <Plus size={12} />
               </button>
             </div>
 
-            {/* Remove */}
             <button
+              type="button"
               onClick={remove}
               disabled={loading}
-              className="p-1.5 text-gray-400 hover:text-red-500 transition-colors"
+              className="p-1.5 text-muted transition-colors hover:text-red-600"
+              aria-label="Remove item"
             >
               <Trash2 size={14} />
             </button>
